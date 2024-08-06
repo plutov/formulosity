@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-**Formulosity** is a self-hosted app for building and deploying the surveys using code instead of traditional survey builders.
+Formulosity is a self-hosted app for building and deploying the surveys using code instead of traditional survey builders.
 </p>
 
 This approach offers a number of advantages, including:
