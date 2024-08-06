@@ -1,3 +1,4 @@
 pkg/github/tmp/
 pkg/parser/tmp/
 postgres-data/
+.DS_Store
