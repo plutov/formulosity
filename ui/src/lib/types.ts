@@ -18,7 +18,6 @@ export type Survey = {
   error_log: string
   url: string
   url_slug: string
-  custom_theme_url: string
   config: SurveyConfig
   stats: SurveyStats
   sessions: Array<SurveySession>
@@ -33,10 +32,13 @@ export type SurveyStats = {
   completion_rate: number
 }
 
+export const SurveyThemeCustom = 'custom'
+
 export type SurveyConfig = {
   title: string
   intro: string
   outro: string
+  theme: string
   questions: SurveyQuestions
 }
 

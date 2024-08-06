@@ -23,13 +23,6 @@ func CreateSurvey(svc services.Services, survey *types.Survey) error {
 		return errors.New(msg)
 	}
 
-	survey.CustomThemeURL, err = UploadCustomTheme(svc, survey.URLSlug, survey.Config.ThemeContents)
-	if err != nil {
-		msg := "unable to upload custom theme"
-		logCtx.WithError(err).Error(msg)
-		return errors.New(msg)
-	}
-
 	if err := svc.Storage.CreateSurvey(survey); err != nil {
 		msg := "unable to create survey"
 		logCtx.WithError(err).Error(msg)
@@ -50,14 +43,6 @@ func CreateSurvey(svc services.Services, survey *types.Survey) error {
 func UpdateSurvey(svc services.Services, survey *types.Survey) error {
 	logCtx := log.With("survey_uuid", survey.UUID)
 	logCtx.Info("updating survey")
-
-	var err error
-	survey.CustomThemeURL, err = UploadCustomTheme(svc, survey.URLSlug, survey.Config.ThemeContents)
-	if err != nil {
-		msg := "unable to upload custom theme"
-		logCtx.WithError(err).Error(msg)
-		return errors.New(msg)
-	}
 
 	if err := svc.Storage.UpdateSurvey(survey); err != nil {
 		msg := "unable to update survey"

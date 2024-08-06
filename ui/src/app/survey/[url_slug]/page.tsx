@@ -56,7 +56,7 @@ export default async function SurveyPage({
 
   const survey = surveyResp.data.data as Survey
   return (
-    <SurveyLayout customThemeURL={survey.custom_theme_url}>
+    <SurveyLayout surveyTheme={survey.config.theme} urlSlug={survey.url_slug}>
       <SurveyForm survey={survey} />
     </SurveyLayout>
   )

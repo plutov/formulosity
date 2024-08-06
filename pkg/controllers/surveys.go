@@ -7,6 +7,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/plutov/formulosity/pkg/http/response"
+	"github.com/plutov/formulosity/pkg/log"
 	surveyspkg "github.com/plutov/formulosity/pkg/surveys"
 	"github.com/plutov/formulosity/pkg/types"
 )
@@ -18,6 +19,21 @@ func (h *Handler) getSurvey(c echo.Context) error {
 	}
 
 	return response.Ok(c, survey)
+}
+
+func (h *Handler) getSurveyCSS(c echo.Context) error {
+	survey, err := h.getLaunchedSurvey(c)
+	if err != nil {
+		return response.NotFound(c, err.Error())
+	}
+
+	// serve css
+	if survey.Config.Theme == types.Theme_Custom {
+		filePath := fmt.Sprintf("%s/%s/theme.css", os.Getenv("SURVEYS_DIR"), survey.Name)
+		return c.File(filePath)
+	}
+
+	return response.Ok(c, "ok")
 }
 
 func (h *Handler) getLaunchedSurvey(c echo.Context) (*types.Survey, error) {
@@ -45,6 +61,7 @@ type updateSurveyReq struct {
 func (h *Handler) getSurveys(c echo.Context) error {
 	surveys, err := h.Storage.GetSurveys()
 	if err != nil {
+		log.WithError(err).Error("failed to get surveys")
 		return response.InternalErrorDefaultMsg(c)
 	}
 

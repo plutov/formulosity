@@ -54,7 +54,6 @@ type Survey struct {
 	Name           string               `json:"name"`
 	URLSlug        string               `json:"url_slug"`
 	URL            string               `json:"url"`
-	CustomThemeURL string               `json:"custom_theme_url"`
 
 	Config *SurveyConfig `json:"config"`
 	Stats  SurveyStats   `json:"stats"`

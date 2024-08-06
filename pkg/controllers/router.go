@@ -33,6 +33,7 @@ func NewRouter(h *Handler) *echo.Echo {
 
 	surveysGroup := e.Group("/surveys")
 	surveysGroup.GET("/:url_slug", h.getSurvey)
+	surveysGroup.GET("/:url_slug/css", h.getSurveyCSS)
 	surveysGroup.PUT("/:url_slug/sessions", h.createSurveySession)
 	surveysGroup.GET("/:url_slug/sessions/:session_uuid", h.getSurveySessionHandler)
 	surveysGroup.POST("/:url_slug/sessions/:session_uuid/questions/:question_uuid/answers", h.submitSurveyAnswer)

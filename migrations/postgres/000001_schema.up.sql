@@ -16,7 +16,6 @@ CREATE TABLE
         error_log TEXT,
         name varchar(32) NOT NULL UNIQUE,
         url_slug varchar(1024) NOT NULL UNIQUE,
-        custom_theme_url varchar(1024) NOT NULL DEFAULT '',
         config JSONB
     );
 

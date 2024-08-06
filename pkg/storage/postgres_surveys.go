@@ -10,11 +10,11 @@ import (
 
 func (p *Postgres) CreateSurvey(survey *types.Survey) error {
 	query := `INSERT INTO surveys
-		(parse_status, delivery_status, error_log, name, config, url_slug, custom_theme_url)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		(parse_status, delivery_status, error_log, name, config, url_slug)
+		VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING id;`
 
-	row := p.conn.QueryRow(query, survey.ParseStatus, survey.DeliveryStatus, survey.ErrorLog, survey.Name, survey.Config, survey.URLSlug, survey.CustomThemeURL)
+	row := p.conn.QueryRow(query, survey.ParseStatus, survey.DeliveryStatus, survey.ErrorLog, survey.Name, survey.Config, survey.URLSlug)
 	if row == nil {
 		return fmt.Errorf("unable to create survey")
 	}
@@ -28,10 +28,10 @@ func (p *Postgres) CreateSurvey(survey *types.Survey) error {
 
 func (p *Postgres) UpdateSurvey(survey *types.Survey) error {
 	query := `UPDATE surveys
-		SET parse_status=$1, delivery_status=$2, error_log=$3, name=$4, config=$5, url_slug=$6, custom_theme_url=$7
-		WHERE uuid=$8;`
+		SET parse_status=$1, delivery_status=$2, error_log=$3, name=$4, config=$5, url_slug=$6
+		WHERE uuid=$7;`
 
-	_, err := p.conn.Exec(query, survey.ParseStatus, survey.DeliveryStatus, survey.ErrorLog, survey.Name, survey.Config, survey.URLSlug, survey.CustomThemeURL, survey.UUID)
+	_, err := p.conn.Exec(query, survey.ParseStatus, survey.DeliveryStatus, survey.ErrorLog, survey.Name, survey.Config, survey.URLSlug, survey.UUID)
 	return err
 }
 
@@ -39,7 +39,7 @@ func (p *Postgres) GetSurveys() ([]*types.Survey, error) {
 	query := `SELECT
 		s.id, s.uuid, s.created_at,
 		s.parse_status, s.delivery_status,
-		s.error_log, s.name, s.config, s.url_slug, s.custom_theme_url,
+		s.error_log, s.name, s.config, s.url_slug,
 		(SELECT COUNT(*) FROM surveys_sessions WHERE survey_id = s.id AND status = $1) AS sessions_count_in_progress,
 		(SELECT COUNT(*) FROM surveys_sessions WHERE survey_id = s.id AND status = $2) AS sessions_count_completed
 	FROM surveys AS s;`
@@ -55,7 +55,7 @@ func (p *Postgres) GetSurveys() ([]*types.Survey, error) {
 
 		err := rows.Scan(&survey.ID, &survey.UUID, &survey.CreatedAt,
 			&survey.ParseStatus, &survey.DeliveryStatus, &survey.ErrorLog,
-			&survey.Name, &survey.Config, &survey.URLSlug, &survey.CustomThemeURL,
+			&survey.Name, &survey.Config, &survey.URLSlug,
 			&survey.Stats.SessionsCountInProgess, &survey.Stats.SessionsCountCompleted)
 		if err != nil {
 			return nil, err
@@ -76,7 +76,7 @@ func (p *Postgres) GetSurveyByField(field string, value interface{}) (*types.Sur
 	query := fmt.Sprintf(`SELECT
 		s.id, s.uuid, s.created_at,
 		s.parse_status, s.delivery_status,
-		s.error_log, s.name, s.config, s.url_slug, s.custom_theme_url
+		s.error_log, s.name, s.config, s.url_slug
 	FROM surveys AS s
 	WHERE s.%s=$1;`, field)
 
@@ -84,7 +84,7 @@ func (p *Postgres) GetSurveyByField(field string, value interface{}) (*types.Sur
 	survey := &types.Survey{}
 	err := row.Scan(&survey.ID, &survey.UUID, &survey.CreatedAt,
 		&survey.ParseStatus, &survey.DeliveryStatus, &survey.ErrorLog,
-		&survey.Name, &survey.Config, &survey.URLSlug, &survey.CustomThemeURL)
+		&survey.Name, &survey.Config, &survey.URLSlug)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil

@@ -26,7 +26,7 @@ This approach offers a number of advantages, including:
 - [x] YAML survey configuration
 - [x] Basic question types
 - [x] Default theme
-- [ ] Custom themes support
+- [x] Custom themes support
 - [x] Personalized options: intro, outro, etc.
 - [x] Cookie/IP deduplication
 - [ ] Detect survey changes in real time
@@ -241,6 +241,10 @@ docker-compose up -d --build
 ```
 
 And you should be able to access the UI on http://localhost:3000
+
+## Deployment
+
+Coming soon.
 
 ## Tech Stack
 
