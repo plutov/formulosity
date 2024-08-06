@@ -1,0 +1,43 @@
+questions:
+- type: single-choice
+  label: What is the capital of Germany?
+  description: Please select the correct answer.
+  options:
+  - Berlin
+  - Munich
+  - Paris
+  - London
+  - Hamburg
+  - Cologne
+  - Geneva
+  - Oslo
+  - Rome
+  - Madrid
+  - Vienna
+  - Warsaw
+  - Prague
+  - Budapest
+  - Athens
+  - Sofia
+  - Bucharest
+  - Moscow
+  - Kiev
+  - Minsk
+  - Riga
+  - Vilnius
+  - Tallinn
+  - Helsinki
+  - Stockholm
+  - Copenhagen
+  - Amsterdam
+  - Brussels
+  - Luxembourg
+  - Bern
+  - Lisbon
+  - Dublin
+  - Reykjavik
+  - Washington
+  - Ottawa
+  - Mexico City
+  - Brasilia
+  - Buenos Aires

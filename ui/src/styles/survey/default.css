@@ -1,0 +1,138 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@tailwind variants;
+
+@layer base {
+  .h1 {
+    @apply text-crimson-9;
+  }
+  .h2 {
+    @apply text-crimson-9;
+  }
+  .h3 {
+    @apply text-crimson-9;
+  }
+  .h4 {
+    @apply text-crimson-9;
+  }
+}
+
+@layer components {
+  .background {
+    @apply absolute inset-0 -z-50;
+  }
+
+  .spinner {
+    @apply inline w-8 h-8 text-white animate-spin fill-crimson-9;
+  }
+
+  .background-screen {
+    @apply flex h-screen flex-col items-center justify-center;
+  }
+
+  .background-fill {
+    @apply max-w-full max-h-full h-[562px] w-[562px] rounded-full bg-crimson-10/20 blur-[150px];
+  }
+
+  .footer {
+    @apply mx-auto flex w-full flex-col py-8;
+  }
+
+  .footer .navi {
+    @apply flex items-center justify-between w-full text-gray-600 bg-gray-100 rounded-lg max-w-[128px] mx-2;
+  }
+
+  .footer .navi .prev {
+    @apply inline-flex items-center justify-center h-8 px-1 w-6 bg-gray-100 rounded-s-lg enabled:hover:bg-gray-200 text-gray-600;
+  }
+
+  .footer .navi .curr {
+    @apply flex-shrink-0 mx-1 text-sm font-medium space-x-0.5 rtl:space-x-reverse;
+  }
+
+  .footer .navi .next {
+    @apply inline-flex items-center justify-center h-8 px-1 w-6 bg-gray-100 rounded-s-lg enabled:hover:bg-gray-200 text-gray-600;
+  }
+
+  .intro {
+    @apply mx-auto max-w-screen-md text-center py-8 lg:py-16 gap-4;
+  }
+
+  .intro-title {
+    @apply py-8 lg:py-16 text-base lg:text-lg;
+  }
+
+  .intro-start {
+    @apply flex flex-col py-8 lg:py-16 items-center text-center;
+  }
+
+  .intro-start > button {
+    @apply text-sm font-medium bg-crimson-9 enabled:hover:bg-crimson-11;
+  }
+
+  .form {
+    @apply w-full mx-auto max-w-xl px-4;
+  }
+
+  .next-question {
+    @apply h-12 w-32;
+  }
+
+  .next-question:enabled,
+  .next-question:disabled {
+    @apply bg-crimson-9;
+  }
+
+  .next-question:hover {
+    @apply enabled:hover:bg-crimson-11;
+  }
+
+  .try-again {
+    @apply text-sm font-medium enabled:bg-crimson-9 enabled:hover:bg-crimson-11;
+  }
+
+  .try-again:hover {
+    @apply enabled:hover:bg-crimson-11;
+  }
+
+  .checkbox {
+    @apply checked:text-crimson-9;
+  }
+
+  .rating:enabled {
+    @apply bg-gray-700 enabled:hover:bg-crimson-11 border-pink-300;
+  }
+
+  .rating-selected:enabled {
+    @apply enabled:bg-crimson-9 enabled:hover:bg-crimson-11;
+  }
+
+  .sortable-item {
+    @apply w-full p-2.5 m-2.5 border text-left text-white border-gray-300 border-gray-600 bg-gray-700 hover:bg-crimson-9 text-sm rounded-lg cursor-pointer;
+  }
+
+  .dropdown > div {
+    @apply bg-gray-700;
+  }
+
+  .dropdown button {
+    @apply justify-start w-full bg-gray-700 enabled:bg-gray-700 hover:bg-gray-800 enabled:hover:bg-gray-800 text-white;
+  }
+
+  .dropdown button > span > svg {
+    @apply absolute top-0 right-2 h-full;
+  }
+
+  .outro {
+    @apply mx-auto max-w-screen-md text-center py-16 gap-4;
+  }
+
+  .caption {
+    @apply text-sm font-medium text-white py-4;
+  }
+
+  .datepicker-selected {
+    @apply bg-crimson-9 text-white hover:bg-crimson-11;
+  }
+}

@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .sidebar > div {
+    @apply rounded-none mt-16;
+  }
+
+  .sidebar .org-name span {
+    @apply truncate;
+  }
+
+  .sidebar .org-create svg {
+    @apply text-white;
+  }
+
+  .dropdown button {
+    @apply justify-start w-full dark:bg-gray-700 dark:enabled:hover:bg-gray-800;
+  }
+
+  .tabs button.active {
+    @apply dark:text-crimson-9 dark:border-crimson-9;
+  }
+
+  .tabs button {
+    @apply focus:ring-0;
+  }
+}

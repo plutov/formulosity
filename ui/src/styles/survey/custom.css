@@ -1,0 +1,153 @@
+.h1,
+.h1,
+.h3,
+.h4 {
+  color: #cccccc;
+}
+
+.background {
+}
+
+.background-screen {
+}
+
+.background-fill {
+  display: none;
+}
+
+.spinner {
+  fill: blue;
+}
+
+.footer {
+}
+
+.footer .navi {
+  background-color: #cccccc;
+  color: #000000;
+}
+
+.footer .navi .prev {
+  background-color: #cccccc;
+  color: #000000;
+}
+
+.footer .navi .curr {
+  color: #000000;
+}
+
+.footer .navi .next {
+  background-color: #cccccc;
+  color: #000000;
+}
+
+.intro {
+}
+
+.intro-title {
+}
+
+.intro-start {
+}
+
+.intro-start > button {
+  background-color: #cccccc;
+  color: #000000;
+}
+
+.intro-start > button:enabled:hover {
+  background-color: #eeeeee;
+}
+
+.form {
+}
+
+.next-question {
+  background-color: #cccccc;
+  color: #000000;
+}
+
+.next-question:enabled,
+.next-question:disabled {
+  background-color: #cccccc;
+}
+
+.next-question:enabled:hover,
+.next-question:disabled:hover {
+  background-color: #eeeeee !important;
+}
+
+.try-again {
+  background-color: #eeeeee;
+}
+
+.try-again:hover {
+  background-color: #eeeeee;
+}
+
+.dropdown > div {
+  background-color: #cccccc;
+  color: #000000;
+}
+
+.dropdown button,
+.dropdown button:enabled {
+  background-color: #cccccc;
+  color: #000000;
+}
+
+.dropdown button:hover,
+.dropdown button:enabled:hover {
+  background-color: #eeeeee;
+}
+
+.checkbox:checked {
+  color: blue;
+}
+
+.datepicker {
+}
+
+.datepicker-selected {
+  background-color: #eeeeee;
+  color: #000000;
+}
+
+.datepicker-selected:hover {
+  background-color: #cccccc;
+}
+
+.rating:enabled {
+  background-color: #eeeeee;
+  color: #000000;
+  border-color: #000000;
+}
+
+.rating:enabled:hover:enabled {
+  background-color: #cccccc;
+}
+
+.rating-selected:enabled:enabled {
+  background-color: blue;
+  color: #ffffff;
+}
+
+.rating-selected:enabled:hover:enabled {
+  color: #000000;
+  background-color: #eeeeee;
+}
+
+.sortable-item {
+  background-color: #cccccc;
+  color: #000000;
+}
+
+.sortable-item:hover {
+  background-color: #eeeeee;
+}
+.outro .h2 {
+  color: #cccccc;
+}
+
+.caption {
+}

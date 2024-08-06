@@ -1,0 +1,9 @@
+variables:
+# id must be unique
+- id: german-city-options
+  type: list
+  options:
+  - Berlin
+  - Munich
+  - Hamburg
+  - Cologne
