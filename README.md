@@ -31,13 +31,13 @@ This approach offers a number of advantages, including:
 - [x] Cookie/IP deduplication
 - [ ] Detect survey changes in real time
 
-## Demo Links
+## See it in Action! Demo Links
 
 <p align="center" width="100%">
-	<a href="https://formulosity.vercel.app/app">Console UI</a> *
-	<a href="https://formulosity.vercel.app/survey/rhaxwhxm76iu">simple</a> *
-	<a href="https://formulosity.vercel.app/survey/29zphubxwujn">custom_theme</a> *
-	<a href="https://formulosity.vercel.app/survey/6n28ezs64v2f">short</a> *
+	<a href="https://formulosity.vercel.app/app">Console UI</a> -
+	<a href="https://formulosity.vercel.app/survey/rhaxwhxm76iu">simple</a> -
+	<a href="https://formulosity.vercel.app/survey/29zphubxwujn">custom_theme</a> -
+	<a href="https://formulosity.vercel.app/survey/6n28ezs64v2f">short</a> -
 	<a href="https://formulosity.vercel.app/survey/rqvzuy0hkau4">many_options</a>
 </p>
 
