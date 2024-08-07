@@ -7,6 +7,10 @@
     "start": "next start",
     "lint": "next lint"
   },
+  "engines": {
+    "npm": ">=10.0.0",
+    "node": ">=20.0.0"
+  },
   "dependencies": {
     "flowbite": "^1.8.1",
     "flowbite-react": "^0.6.4",
