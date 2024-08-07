@@ -1,0 +1,32 @@
+# flyctl launch added from .gitignore
+**/pkg/github/tmp
+**/pkg/parser/tmp
+**/postgres-data
+**/.DS_Store
+
+# flyctl launch added from ui/.gitignore
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+ui/node_modules
+ui/.pnp
+ui/**/.pnp.js
+
+# testing
+ui/coverage
+
+# next.js
+ui/.next
+ui/out
+
+# production
+ui/build
+
+# misc
+ui/**/.DS_Store
+
+# debug
+ui/**/npm-debug.log*
+ui/**/yarn-debug.log*
+ui/**/yarn-error.log*
+fly.toml
