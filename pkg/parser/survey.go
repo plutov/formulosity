@@ -128,8 +128,6 @@ func (p *Parser) ReadSurvey(path string) (*types.SurveyConfig, error) {
 				fileParseErr = yaml.Unmarshal(file, &surveyConfig.Security)
 			case surveyFileType_Variables:
 				fileParseErr = yaml.Unmarshal(file, &surveyConfig.Variables)
-			case surveyFileType_Theme:
-				surveyConfig.ThemeContents = string(file)
 			}
 			if fileParseErr != nil {
 				return nil, fmt.Errorf("unable to parse file '%s': %w", surveyFile.Name, fileParseErr)

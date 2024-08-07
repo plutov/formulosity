@@ -71,11 +71,10 @@ type SurveyConfig struct {
 	Outro string `json:"outro" yaml:"outro"`
 	Theme string `json:"theme" yaml:"theme"`
 
-	Hash          string     `json:"hash" yaml:"-"`
-	Questions     *Questions `json:"questions" yaml:"-"`
-	Variables     *Variables `json:"variables" yaml:"-"`
-	Security      *Security  `json:"security" yaml:"-"`
-	ThemeContents string     `json:"theme_contents" yaml:"-"`
+	Hash      string     `json:"hash" yaml:"-"`
+	Questions *Questions `json:"questions" yaml:"-"`
+	Variables *Variables `json:"variables" yaml:"-"`
+	Security  *Security  `json:"security" yaml:"-"`
 }
 
 type SurveysSyncResult struct {
