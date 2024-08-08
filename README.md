@@ -29,7 +29,7 @@ This approach offers a number of advantages, including:
 - [x] Custom themes support
 - [x] Personalized options: intro, outro, etc.
 - [x] Cookie/IP deduplication
-- [ ] Admin user authentication
+- [x] Admin user authentication
 - [ ] Advanced validation rules
 - [ ] Detect survey changes in real time
 
@@ -42,6 +42,8 @@ This approach offers a number of advantages, including:
 	<a href="https://formulosity.vercel.app/survey/6n28ezs64v2f">short</a> -
 	<a href="https://formulosity.vercel.app/survey/rqvzuy0hkau4">many_options</a>
 </p>
+
+Note: use `user` / `pass` to login into the Console UI.
 
 ## Survey Structure
 
@@ -172,12 +174,12 @@ Presents a question with only one correct answer from a list of options.
 - type: single-choice
   label: What is the capital of Germany?
   options:
-  - Berlin
-  - Munich
-  - Paris
-  - London
-  - Hamburg
-  - Cologne
+    - Berlin
+    - Munich
+    - Paris
+    - London
+    - Hamburg
+    - Cologne
 ```
 
 ### Multiple Choice
@@ -192,12 +194,12 @@ Presents a question where users can select multiple answers (with limitations). 
     min: 1
     max: 3
   options:
-  - Berlin
-  - Munich
-  - Paris
-  - London
-  - Hamburg
-  - Cologne
+    - Berlin
+    - Munich
+    - Paris
+    - London
+    - Hamburg
+    - Cologne
 ```
 
 ### Date
@@ -252,7 +254,7 @@ Presents a question where users can only answer "yes" or "no".
 docker-compose up -d --build
 ```
 
-And you should be able to access the UI on http://localhost:3000
+And you should be able to access the UI on http://localhost:3000 (default basic auth: `user:pass`).
 
 ## Deployment
 
@@ -263,6 +265,23 @@ There are 3 parts that need to be deployed:
 - Next.js frontend. It's also packaged as a Docker container, but also can be deployed to Vercel or Netlify.
 
 The demo service (links above) is deployed to Fly.io (Go, Postgres) and Vercel (Next.js) and are under the free tiers.
+
+### Environment Variables
+
+Go backend:
+
+- `DATABASE_URL` - Postgres connection string
+- `LOG_LEVEL` - Log level, e.g. `info`
+- `UI_ADDR` - Public address of the UI, e.g. `https://formulosity.vercel.app`
+- `SURVEYS_DIR` - Directory with surveys, e.g. `/root/surveys`
+
+UI (.env files):
+
+- `PUBLIC_APP_URL` - Public address of the UI, e.g. `https://formulosity.vercel.app`
+- `CONSOLE_API_ADDR` - Internal address of the Go backend, e.g. `http://api:8080` (could be the same as `NEXT_PUBLIC_CONSOLE_API_ADDR`)
+- `NEXT_PUBLIC_CONSOLE_API_ADDR` - Public address of the Go backend
+- `IRON_SESSION_SECRET` - Secret for session encryption
+- `HTTP_BASIC_AUTH` - Format: `user:pass` for basic auth (optional)
 
 ## Tech Stack
 

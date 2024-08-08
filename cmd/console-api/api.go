@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	controllers "github.com/plutov/formulosity/pkg/controllers"
@@ -34,7 +33,7 @@ func main() {
 
 	r := controllers.NewRouter(handler)
 
-	if err := r.Start(fmt.Sprintf(":%s", os.Getenv("PORT"))); err != nil {
+	if err := r.Start(":8080"); err != nil {
 		log.WithError(err).Fatal("shutting down the server")
 	}
 }
