@@ -66,7 +66,7 @@ func (h *Handler) getSurveys(c echo.Context) error {
 	}
 
 	for i, s := range surveys {
-		surveys[i].URL = fmt.Sprintf("%s/survey/%s", os.Getenv("UI_ADDR"), s.URLSlug)
+		surveys[i].URL = fmt.Sprintf("/survey/%s", s.URLSlug)
 	}
 
 	return response.Ok(c, surveys)

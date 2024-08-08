@@ -272,14 +272,12 @@ Go backend:
 
 - `DATABASE_URL` - Postgres connection string
 - `LOG_LEVEL` - Log level, e.g. `info`
-- `UI_ADDR` - Public address of the UI, e.g. `https://formulosity.vercel.app`
 - `SURVEYS_DIR` - Directory with surveys, e.g. `/root/surveys`
 
-UI (.env files):
+UI:
 
-- `PUBLIC_APP_URL` - Public address of the UI, e.g. `https://formulosity.vercel.app`
 - `CONSOLE_API_ADDR` - Internal address of the Go backend, e.g. `http://api:8080` (could be the same as `NEXT_PUBLIC_CONSOLE_API_ADDR`)
-- `NEXT_PUBLIC_CONSOLE_API_ADDR` - Public address of the Go backend
+- `NEXT_PUBLIC_CONSOLE_API_ADDR` - Public address of the Go backend. Needs to be set as a build arg for the Docker image, since it's needed for `npm run build`.
 - `IRON_SESSION_SECRET` - Secret for session encryption
 - `HTTP_BASIC_AUTH` - Format: `user:pass` for basic auth (optional)
 

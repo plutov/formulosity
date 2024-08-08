@@ -11,7 +11,6 @@ export const metadata: Metadata = {
   },
   description: siteConfig.description,
   keywords: [],
-  metadataBase: new URL(String(siteConfig.url)),
   alternates: {
     canonical: '/',
   },

@@ -25,7 +25,6 @@ services:
       - postgres
     environment:
       - LOG_LEVEL=debug
-      - UI_ADDR=http://localhost:3000
       - DATABASE_URL=postgres://postgres:postgres@postgres:5432/formulosity?sslmode=disable
       - SURVEYS_DIR=/root/surveys
     volumes:
@@ -35,8 +34,14 @@ services:
     restart: always
     build:
       context: ./ui
+      args:
+        - NEXT_PUBLIC_CONSOLE_API_ADDR=http://localhost:9900
     ports:
       - "3000:3000"
+    environment:
+      - CONSOLE_API_ADDR=http://api:8080
+      - IRON_SESSION_SECRET=e75af92dffba8065f2730472f45f2046941fe35f361739d31992f42d88d6bf6c
+      - HTTP_BASIC_AUTH=user:pass
     depends_on:
       - postgres
       - api

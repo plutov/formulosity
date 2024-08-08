@@ -13,6 +13,7 @@ func NewRouter(h *Handler) *echo.Echo {
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+	e.Use(middleware.CORS())
 
 	e.GET("/", h.healthCheckHandler)
 	e.GET("/app/surveys", h.getSurveys)
