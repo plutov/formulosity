@@ -2,7 +2,7 @@
   "name": "formulosity-ui",
   "private": true,
   "scripts": {
-    "build": "NODE_ENV=production next build",
+    "build": "next build",
     "dev": "next dev",
     "start": "next start",
     "lint": "next lint"

@@ -29,6 +29,8 @@ This approach offers a number of advantages, including:
 - [x] Custom themes support
 - [x] Personalized options: intro, outro, etc.
 - [x] Cookie/IP deduplication
+- [ ] Admin user authentication
+- [ ] Advanced validation rules
 - [ ] Detect survey changes in real time
 
 ## See it in Action! Demo Links
@@ -254,7 +256,13 @@ And you should be able to access the UI on http://localhost:3000
 
 ## Deployment
 
-Coming soon.
+There are 3 parts that need to be deployed:
+
+- Go backend. It's packaged as a Docker container and can be deployed to any cloud provider.
+- Postgres database. You can use managed Postgres services or deploy it yourself.
+- Next.js frontend. It's also packaged as a Docker container, but also can be deployed to Vercel or Netlify.
+
+The demo service (links above) is deployed to Fly.io (Go, Postgres) and Vercel (Next.js) and are under the free tiers.
 
 ## Tech Stack
 
