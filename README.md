@@ -266,20 +266,20 @@ There are 3 parts that need to be deployed:
 - Next.js frontend. It's also packaged as a Docker container, but also can be deployed to Vercel or Netlify.
 - [Optional] Postgres database. You can use managed Postgres services or deploy it yourself.
 
-The demo service (links above) is deployed to Fly.io (Go, Postgres) and Vercel (Next.js) and are under the free tiers.
+The demo service (links above) is deployed to Fly.io (Go, SQLite) and Vercel (Next.js) and are under the free tiers.
 
 ### Environment Variables
 
 API:
 
 - `DATABASE_TYPE` - `sqlite` or `postgres`
-- `DATABASE_URL` - Postgres connection string
+- `DATABASE_URL` - Postgres or SQLite connection string
 - `LOG_LEVEL` - Log level, e.g. `info`
-- `SURVEYS_DIR` - Directory with surveys, e.g. `/root/surveys`
+- `SURVEYS_DIR` - Directory with surveys, e.g. `/root/surveys`. It's suggested to use mounted volume for this directory.
 
 UI:
 
-- `CONSOLE_API_ADDR` - Internal address of the Go backend, e.g. `http://api:8080` (could be the same as `NEXT_PUBLIC_CONSOLE_API_ADDR`)
+- `CONSOLE_API_ADDR` - Internal address of the Go backend, e.g. `http://api:8080` (could be the same as `NEXT_PUBLIC_CONSOLE_API_ADDR` if UI amd API are not on the same network).
 - `NEXT_PUBLIC_CONSOLE_API_ADDR` - Public address of the Go backend. Needs to be set as a build arg for the Docker image, since it's needed for `npm run build`.
 - `IRON_SESSION_SECRET` - Secret for session encryption
 - `HTTP_BASIC_AUTH` - Format: `user:pass` for basic auth (optional)
