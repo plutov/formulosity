@@ -268,8 +268,9 @@ The demo service (links above) is deployed to Fly.io (Go, Postgres) and Vercel (
 
 ### Environment Variables
 
-Go backend:
+API:
 
+- `DATABASE_TYPE` - `sqlite` or `postgres`
 - `DATABASE_URL` - Postgres connection string
 - `LOG_LEVEL` - Log level, e.g. `info`
 - `SURVEYS_DIR` - Directory with surveys, e.g. `/root/surveys`
@@ -283,7 +284,7 @@ UI:
 
 ## Tech Stack
 
-- Backend: Go, Postgres
+- Backend: Go, Postgres, SQLite
 - UI: Next.js, Tailwind CSS
 
 ## Create new Postgres migration
@@ -291,12 +292,14 @@ UI:
 Make sure to install [go-migrate](https://github.com/golang-migrate/migrate) first.
 
 ```
+cd api
 migrate create -dir migrations/postgres -ext sql -seq name
 ```
 
 ## Run Go tests
 
 ```
+cd api
 make test
 ```
 

@@ -1,4 +1,11 @@
-pkg/github/tmp/
-pkg/parser/tmp/
-postgres-data/
+api/pkg/github/tmp/
+api/pkg/parser/tmp/
+api/postgres-data/
+ui/node_modules
+ui/.next/
+ui/out/
+ui/build
+ui/npm-debug.log*
+ui/yarn-debug.log*
+ui/yarn-error.log*
 .DS_Store
