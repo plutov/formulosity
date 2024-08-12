@@ -1,33 +1,21 @@
 services:
-  postgres:
-    image: postgres:16.0-alpine
-    restart: always
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=formulosity
-    ports:
-      - "5432:5432"
-    volumes:
-      - ./api/postgres-data:/var/lib/postgresql/data
-    logging:
-      driver: none
-
   api:
     restart: always
     build:
       context: ./api
     ports:
       - "9900:8080"
-    depends_on:
-      - postgres
+    # depends_on:
+    # - postgres
     environment:
       - LOG_LEVEL=debug
-      - DATABASE_TYPE=postgres
-      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/formulosity?sslmode=disable
+      - DATABASE_TYPE=sqlite # postgres|sqlite
+      # - DATABASE_URL=postgres://postgres:postgres@postgres:5432/formulosity?sslmode=disable
+      - DATABASE_URL=/root/sqlite3/formulosity.db
       - SURVEYS_DIR=/root/surveys
     volumes:
       - ./api/surveys:/root/surveys
+      - ./api/sqlite3:/root/sqlite3
 
   ui:
     restart: always
@@ -42,8 +30,21 @@ services:
       - IRON_SESSION_SECRET=e75af92dffba8065f2730472f45f2046941fe35f361739d31992f42d88d6bf6c
       - HTTP_BASIC_AUTH=user:pass
     depends_on:
-      - postgres
       - api
+
+  # postgres:
+  #   image: postgres:16.0-alpine
+  #   restart: always
+  #   environment:
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_PASSWORD=postgres
+  #     - POSTGRES_DB=formulosity
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - ./api/postgres-data:/var/lib/postgresql/data
+  #   logging:
+  #     driver: none
 
 volumes:
   dbvolume:

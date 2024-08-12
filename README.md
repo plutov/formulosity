@@ -30,6 +30,8 @@ This approach offers a number of advantages, including:
 - [x] Personalized options: intro, outro, etc.
 - [x] Cookie/IP deduplication
 - [x] Admin user authentication
+- [x] Different database options: SQLite and Postgres
+- [x] Continue where you left off
 - [ ] Advanced validation rules
 - [ ] Detect survey changes in real time
 
@@ -261,8 +263,8 @@ And you should be able to access the UI on http://localhost:3000 (default basic 
 There are 3 parts that need to be deployed:
 
 - Go backend. It's packaged as a Docker container and can be deployed to any cloud provider.
-- Postgres database. You can use managed Postgres services or deploy it yourself.
 - Next.js frontend. It's also packaged as a Docker container, but also can be deployed to Vercel or Netlify.
+- [Optional] Postgres database. You can use managed Postgres services or deploy it yourself.
 
 The demo service (links above) is deployed to Fly.io (Go, Postgres) and Vercel (Next.js) and are under the free tiers.
 
@@ -287,13 +289,14 @@ UI:
 - Backend: Go, Postgres, SQLite
 - UI: Next.js, Tailwind CSS
 
-## Create new Postgres migration
+## Create new SQLite/Postgres migration
 
 Make sure to install [go-migrate](https://github.com/golang-migrate/migrate) first.
 
 ```
 cd api
 migrate create -dir migrations/postgres -ext sql -seq name
+migrate create -dir migrations/sqlite -ext sql -seq name
 ```
 
 ## Run Go tests

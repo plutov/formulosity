@@ -14,8 +14,9 @@ import (
 )
 
 const (
-	Theme_Default = "default"
-	Theme_Custom  = "custom"
+	Theme_Default  = "default"
+	Theme_Custom   = "custom"
+	DateTimeFormat = "2006-01-02 15:04:05"
 )
 
 var SupportedThemes = map[string]bool{

@@ -1,4 +1,4 @@
-FROM golang:1.22 as builder
+FROM golang:1.22-bookworm AS builder
 
 WORKDIR /root
 
@@ -11,10 +11,9 @@ COPY ./cmd ./cmd
 COPY ./pkg ./pkg
 COPY ./migrations ./migrations
 COPY ./surveys ./surveys-examples
-RUN CGO_ENABLED=0 GOOS=linux go build -o api cmd/console-api/api.go
+RUN CGO_ENABLED=1 GOOS=linux go build -o api -tags enablecgo cmd/console-api/api.go
 
-FROM alpine:latest
-RUN apk --no-cache add ca-certificates tzdata bash
+FROM debian:bookworm
 WORKDIR /root
 COPY --from=builder /root/api .
 COPY --from=builder /root/migrations ./migrations
