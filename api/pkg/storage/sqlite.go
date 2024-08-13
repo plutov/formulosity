@@ -87,7 +87,9 @@ func (p *Sqlite) CreateSurvey(survey *types.Survey) error {
 
 	survey.UUID = uuid.New().String()
 	configBytes, _ := json.Marshal(survey.Config)
-	_, err := p.conn.Exec(query, survey.ParseStatus, survey.DeliveryStatus, survey.ErrorLog, survey.Name, string(configBytes), survey.URLSlug, survey.UUID, survey.CreatedAt.UTC().Format(types.DateTimeFormat))
+	createdAtStr := time.Now().UTC().Format(types.DateTimeFormat)
+
+	_, err := p.conn.Exec(query, survey.ParseStatus, survey.DeliveryStatus, survey.ErrorLog, survey.Name, string(configBytes), survey.URLSlug, survey.UUID, createdAtStr)
 	return err
 }
 
@@ -245,11 +247,12 @@ func (p *Sqlite) GetSurveyQuestions(surveyID int64) ([]types.Question, error) {
 
 func (p *Sqlite) CreateSurveySession(session *types.SurveySession) error {
 	query := `INSERT INTO surveys_sessions
-		(status, survey_id, ip_addr, uuid)
-		VALUES ($1, (SELECT id FROM surveys WHERE uuid = $2), $3, $4);`
+		(status, survey_id, ip_addr, uuid, created_at)
+		VALUES ($1, (SELECT id FROM surveys WHERE uuid = $2), $3, $4, $5);`
 
 	session.UUID = uuid.New().String()
-	_, err := p.conn.Exec(query, session.Status, session.SurveyUUID, session.IPAddr, session.UUID)
+	createdAtStr := time.Now().UTC().Format(types.DateTimeFormat)
+	_, err := p.conn.Exec(query, session.Status, session.SurveyUUID, session.IPAddr, session.UUID, createdAtStr)
 
 	return err
 }
