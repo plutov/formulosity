@@ -72,5 +72,6 @@ RUN mkdir /data/surveys
 RUN mkdir /data/db
 
 EXPOSE 3000
+EXPOSE 8080
 
 CMD ["sh", "/start.sh"]

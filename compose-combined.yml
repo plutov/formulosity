@@ -11,6 +11,7 @@ services:
         - NEXT_PUBLIC_CONSOLE_API_ADDR=http://127.0.0.1:8080
     ports:
       - "3000:3000"
+      - "8080:8080"
     init: true
     environment:
       - LOG_LEVEL=debug
