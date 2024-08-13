@@ -69,6 +69,7 @@ RUN chmod +x /start.sh
 
 USER 1000:1000
 RUN mkdir /data/surveys
+RUN mkdir /data/db
 
 EXPOSE 3000
 

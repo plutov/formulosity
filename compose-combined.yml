@@ -15,13 +15,14 @@ services:
     environment:
       - LOG_LEVEL=debug
       - DATABASE_TYPE=sqlite # postgres|sqlite
-      - DATABASE_URL=/data/formulosity.db
+      - DATABASE_URL=/data/db/formulosity.db
       - SURVEYS_DIR=/data/surveys
       - CONSOLE_API_ADDR=http://127.0.0.1:8080
       - IRON_SESSION_SECRET=e75af92dffba8065f2730472f45f2046941fe35f361739d31992f42d88d6bf6c
       - HTTP_BASIC_AUTH=user:pass
     volumes:
-      - formulosity_data:/data
+      - formulosity_db:/data/db
+      - ./api/surveys:/data/surveys
 
 volumes:
-  formulosity_data:
+  formulosity_db:
