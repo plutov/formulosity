@@ -163,7 +163,7 @@ export async function getSurveySessions(surveyUUID: string, filter: string) {
 }
 
 export async function updateSurvey(surveyUUID: string, payload: object) {
-  return await patch(`/app/surveys/${surveyUUID}`, payload, true)
+  return await patch(`/app/surveys/${surveyUUID}`, payload, false)
 }
 
 export async function submitQuestionAnswer(
