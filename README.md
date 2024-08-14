@@ -260,13 +260,19 @@ And you should be able to access the UI on http://localhost:3000 (default basic 
 
 ## Deployment
 
-There are 3 parts that need to be deployed:
+You can deploy individual services to any cloud provider:
 
 - Go backend. It's packaged as a Docker container and can be deployed to any cloud provider.
 - Next.js frontend. It's also packaged as a Docker container, but also can be deployed to Vercel or Netlify.
 - [Optional] Postgres database. You can use managed Postgres services or deploy it yourself.
 
 The demo service (links above) is deployed to Fly.io (Go, SQLite) and Vercel (Next.js) and are under the free tiers.
+
+There is also a combined version of Go and Next.js in the same Docker container. You can run it with:
+
+```
+docker-compose -f compose-combined.yml up -d --build
+```
 
 ### Environment Variables
 

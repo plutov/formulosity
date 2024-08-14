@@ -33,8 +33,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=ui . .
 
 ENV NODE_ENV=production
-ARG NEXT_PUBLIC_CONSOLE_API_ADDR
-ENV NEXT_PUBLIC_CONSOLE_API_ADDR=$NEXT_PUBLIC_CONSOLE_API_ADDR
+ENV NEXT_PUBLIC_CONSOLE_API_ADDR=http://127.0.0.1:8080
 
 RUN npm run build
 
