@@ -28,9 +28,11 @@ export default async function AppPage() {
     )
   }
 
+  const apiURL = process.env.CONSOLE_API_ADDR || ''
+
   return (
     <AppLayout>
-      <SurveysPage surveys={surveys} />
+      <SurveysPage surveys={surveys} apiURL={apiURL} />
     </AppLayout>
   )
 }

@@ -9,9 +9,10 @@ import { createSurveySession } from 'lib/api'
 
 type SurveyIntroProps = {
   survey: Survey
+  apiURL: string
 }
 
-export default function SurveyIntro({ survey }: SurveyIntroProps) {
+export default function SurveyIntro({ survey, apiURL }: SurveyIntroProps) {
   const [errMessage, seterrMessage] = useState<string | undefined>(undefined)
   const [surveySession, setSurveySession] = useState<SurveySession | undefined>(
     undefined
@@ -23,6 +24,7 @@ export default function SurveyIntro({ survey }: SurveyIntroProps) {
       <SurveyQuestions
         survey={survey}
         session={surveySession as SurveySession}
+        apiURL={apiURL}
       />
     )
   }
@@ -42,7 +44,8 @@ export default function SurveyIntro({ survey }: SurveyIntroProps) {
             seterrMessage(undefined)
             const sessionRes = await createSurveySession(
               window.location.hostname,
-              survey.url_slug
+              survey.url_slug,
+              apiURL
             )
             if (sessionRes.error) {
               seterrMessage(sessionRes.error)

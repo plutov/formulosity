@@ -33,6 +33,7 @@ import {
 type SurveyQuestionsProps = {
   survey: Survey
   session: SurveySession
+  apiURL: string
 }
 
 interface SortableItemType {
@@ -43,6 +44,7 @@ interface SortableItemType {
 export default function SurveyQuestions({
   survey,
   session,
+  apiURL,
 }: SurveyQuestionsProps) {
   const initialQuestion = determineInitialQuestion(survey, session)
 
@@ -274,7 +276,9 @@ export default function SurveyQuestions({
         <Button.Group>
           <Button
             key={'yes'}
-            className={selectedStringValue === 'yes' ? 'rating-selected' : 'rating'}
+            className={
+              selectedStringValue === 'yes' ? 'rating-selected' : 'rating'
+            }
             onClick={() => {
               setSelectedStringValue('yes')
             }}
@@ -283,7 +287,9 @@ export default function SurveyQuestions({
           </Button>
           <Button
             key={'no'}
-            className={selectedStringValue === 'no' ? 'rating-selected' : 'rating'}
+            className={
+              selectedStringValue === 'no' ? 'rating-selected' : 'rating'
+            }
             onClick={() => {
               setSelectedStringValue('no')
             }}
@@ -338,7 +344,8 @@ export default function SurveyQuestions({
       survey.url_slug,
       session.uuid,
       currentQuestion.uuid,
-      payload
+      payload,
+      apiURL
     )
 
     if (apiRes.error) {

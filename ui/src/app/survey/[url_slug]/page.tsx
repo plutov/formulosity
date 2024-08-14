@@ -42,22 +42,28 @@ export default async function SurveyPage({
     headersList.get('host') as string,
     params.url_slug
   )
+  const apiURL = process.env.CONSOLE_API_ADDR || ''
   if (
     surveyResp.error ||
     !surveyResp.data.data ||
     !surveyResp.data.data.config
   ) {
     return (
-      <SurveyLayout>
+      <SurveyLayout apiURL={apiURL}>
         <SurveyNotFound />
       </SurveyLayout>
     )
   }
 
   const survey = surveyResp.data.data as Survey
+
   return (
-    <SurveyLayout surveyTheme={survey.config.theme} urlSlug={survey.url_slug}>
-      <SurveyForm survey={survey} />
+    <SurveyLayout
+      surveyTheme={survey.config.theme}
+      urlSlug={survey.url_slug}
+      apiURL={apiURL}
+    >
+      <SurveyForm survey={survey} apiURL={apiURL} />
     </SurveyLayout>
   )
 }

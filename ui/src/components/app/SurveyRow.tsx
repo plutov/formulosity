@@ -14,16 +14,21 @@ import {
 
 type SurveyCardProps = {
   survey: Survey
+  apiURL: string
 }
 
-export function SurveyRow({ survey }: SurveyCardProps) {
+export function SurveyRow({ survey, apiURL }: SurveyCardProps) {
   const [errorMsg, setErrorMsg] = useState<string>('')
   const [showErrorLog, setShowErrorLog] = useState<boolean>(false)
 
   async function updateSurveyStatus(surveyUUID: string, status: string) {
-    const res = await updateSurvey(surveyUUID, {
-      delivery_status: status,
-    })
+    const res = await updateSurvey(
+      surveyUUID,
+      {
+        delivery_status: status,
+      },
+      apiURL
+    )
 
     if (res.error) {
       setErrorMsg(res.error)

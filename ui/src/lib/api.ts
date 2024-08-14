@@ -1,21 +1,13 @@
-export function getConsoleApiHost() {
-  return process.env.NEXT_PUBLIC_CONSOLE_API_ADDR
-}
-
-export function getInternalConsoleApiHost() {
-  return process.env.CONSOLE_API_ADDR
-}
-
-export async function call(path: string, init?: RequestInit, server?: boolean) {
+export async function call(path: string, init?: RequestInit, host?: string) {
   try {
     if (init) {
       init['cache'] = 'no-store'
     }
 
-    let host = getConsoleApiHost()
-    if (server) {
-      host = getInternalConsoleApiHost()
+    if (!host) {
+      host = process.env.CONSOLE_API_ADDR_INTERNAL
     }
+
     console.log('calling', `${host}${path}`)
     const res = await fetch(`${host}${path}`, init)
     const data = await res.json()
@@ -50,7 +42,7 @@ export async function call(path: string, init?: RequestInit, server?: boolean) {
   }
 }
 
-export async function post(path: string, payload: object, server?: boolean) {
+export async function post(path: string, payload: object, host?: string) {
   const headers = {
     'Content-Type': 'application/json',
   }
@@ -62,11 +54,11 @@ export async function post(path: string, payload: object, server?: boolean) {
       body: JSON.stringify(payload),
       headers: headers,
     },
-    server
+    host
   )
 }
 
-export async function put(path: string, payload: object, server?: boolean) {
+export async function put(path: string, payload: object, host?: string) {
   const headers = {
     'Content-Type': 'application/json',
   }
@@ -78,11 +70,11 @@ export async function put(path: string, payload: object, server?: boolean) {
       body: JSON.stringify(payload),
       headers: headers,
     },
-    server
+    host
   )
 }
 
-export async function patch(path: string, payload: object, server?: boolean) {
+export async function patch(path: string, payload: object, host?: string) {
   const headers = {
     'Content-Type': 'application/json',
   }
@@ -94,11 +86,11 @@ export async function patch(path: string, payload: object, server?: boolean) {
       body: JSON.stringify(payload),
       headers: headers,
     },
-    server
+    host
   )
 }
 
-export async function get(path: string, server?: boolean) {
+export async function get(path: string, host?: string) {
   const headers = {}
 
   return call(
@@ -107,7 +99,7 @@ export async function get(path: string, server?: boolean) {
       method: 'GET',
       headers: headers,
     },
-    server
+    host
   )
 }
 
@@ -116,64 +108,79 @@ export async function getSurvey(host: string, urlSlug: string) {
     Referer: host,
   }
 
-  return await call(
-    `/surveys/${urlSlug}`,
-    {
-      method: 'GET',
-      headers: headers,
-    },
-    true
-  )
-}
-
-export async function getSurveys() {
-  return await get(`/app/surveys`, true)
-}
-
-export async function createSurveySession(host: string, urlSlug: string) {
-  const headers = {
-    'Content-Type': 'application/json',
-    Referer: host,
-  }
-
-  return await call(`/surveys/${urlSlug}/sessions`, {
-    method: 'PUT',
-    body: JSON.stringify({}),
-    headers: headers,
-  })
-}
-
-export async function getSurveySession(
-  host: string,
-  urlSlug: string,
-  sessionId: string
-) {
-  const headers = {
-    Referer: host,
-  }
-
-  return await call(`/surveys/${urlSlug}/sessions/${sessionId}`, {
+  return await call(`/surveys/${urlSlug}`, {
     method: 'GET',
     headers: headers,
   })
 }
 
-export async function getSurveySessions(surveyUUID: string, filter: string) {
-  return await get(`/app/surveys/${surveyUUID}/sessions?${filter}`, true)
+export async function getSurveys() {
+  return await get(`/app/surveys`)
 }
 
-export async function updateSurvey(surveyUUID: string, payload: object) {
-  return await patch(`/app/surveys/${surveyUUID}`, payload, false)
+export async function createSurveySession(
+  host: string,
+  urlSlug: string,
+  apiURL: string
+) {
+  const headers = {
+    'Content-Type': 'application/json',
+    Referer: host,
+  }
+
+  return await call(
+    `/surveys/${urlSlug}/sessions`,
+    {
+      method: 'PUT',
+      body: JSON.stringify({}),
+      headers: headers,
+    },
+    apiURL
+  )
+}
+
+export async function getSurveySession(
+  host: string,
+  urlSlug: string,
+  sessionId: string,
+  apiURL: string
+) {
+  const headers = {
+    Referer: host,
+  }
+
+  return await call(
+    `/surveys/${urlSlug}/sessions/${sessionId}`,
+    {
+      method: 'GET',
+      headers: headers,
+    },
+    apiURL
+  )
+}
+
+export async function getSurveySessions(surveyUUID: string, filter: string) {
+  return await get(`/app/surveys/${surveyUUID}/sessions?${filter}`)
+}
+
+export async function updateSurvey(
+  surveyUUID: string,
+  payload: object,
+  apiURL: string
+) {
+  return await patch(`/app/surveys/${surveyUUID}`, payload, apiURL)
 }
 
 export async function submitQuestionAnswer(
   urlSlug: string,
   sessionId: string,
   questionUUID: string,
-  payload: object
+  payload: object,
+  apiURL: string
 ) {
   return await post(
     `/surveys/${urlSlug}/sessions/${sessionId}/questions/${questionUUID}/answers`,
-    payload
+    payload,
+    apiURL
   )
 }

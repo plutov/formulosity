@@ -285,8 +285,8 @@ API:
 
 UI:
 
-- `CONSOLE_API_ADDR` - Internal address of the Go backend, e.g. `http://api:8080` (could be the same as `NEXT_PUBLIC_CONSOLE_API_ADDR` if UI amd API are not on the same network).
-- `NEXT_PUBLIC_CONSOLE_API_ADDR` - Public address of the Go backend. Needs to be set as a build arg for the Docker image, since it's needed for `npm run build`.
+- `CONSOLE_API_ADDR_INTERNAL` - Internal address of the Go backend, e.g. `http://api:8080` (could be the same as `CONSOLE_API_ADDR` if UI amd API are not on the same network).
+- `CONSOLE_API_ADDR` - Public address of the Go backend.
 - `IRON_SESSION_SECRET` - Secret for session encryption
 - `HTTP_BASIC_AUTH` - Format: `user:pass` for basic auth (optional)
 
