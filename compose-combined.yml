@@ -1,0 +1,29 @@
+services:
+  formulosity:
+    restart: unless-stopped
+    image: formulosity:latest
+    build:
+      context: .
+      additional_contexts:
+        api: ./api
+        ui: ./ui
+      args:
+        - NEXT_PUBLIC_CONSOLE_API_ADDR=http://127.0.0.1:8080
+    ports:
+      - "3000:3000"
+      - "8080:8080"
+    init: true
+    environment:
+      - LOG_LEVEL=debug
+      - DATABASE_TYPE=sqlite # postgres|sqlite
+      - DATABASE_URL=/data/db/formulosity.db
+      - SURVEYS_DIR=/data/surveys
+      - CONSOLE_API_ADDR=http://127.0.0.1:8080
+      - IRON_SESSION_SECRET=e75af92dffba8065f2730472f45f2046941fe35f361739d31992f42d88d6bf6c
+      - HTTP_BASIC_AUTH=user:pass
+    volumes:
+      - formulosity_db:/data/db
+      - ./api/surveys:/data/surveys
+
+volumes:
+  formulosity_db:
