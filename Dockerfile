@@ -42,7 +42,7 @@ FROM nginxinc/nginx-unprivileged:alpine AS runner
 
 USER 0:0
 
-RUN apk --no-cache add ca-certificates tzdata nodejs
+RUN apk --no-cache add ca-certificates tzdata nodejs tini
 
 WORKDIR /app
 ENV NODE_ENV=production
@@ -76,4 +76,5 @@ RUN mkdir /data/db
 
 EXPOSE 8081
 
+ENTRYPOINT ["/sbin/tini", "-g", "--"]
 CMD ["sh", "/start.sh"]
