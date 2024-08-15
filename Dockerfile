@@ -46,6 +46,7 @@ RUN apk --no-cache add ca-certificates tzdata nodejs tini
 
 WORKDIR /app
 ENV NODE_ENV=production
+ENV CONSOLE_API_ADDR_INTERNAL=http://127.0.0.1:8080
 
 COPY --from=ui_builder /app/public ./public
 
