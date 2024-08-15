@@ -38,7 +38,9 @@ RUN npm run build
 
 
 # Final image
-FROM alpine:latest AS runner
+FROM nginxinc/nginx-unprivileged:alpine AS runner
+
+USER 0:0
 
 RUN apk --no-cache add ca-certificates tzdata nodejs
 
@@ -65,11 +67,13 @@ RUN chown 1000:1000 /data
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
 
+COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+RUN chown 1000:1000 /etc/nginx/conf.d/default.conf
+
 USER 1000:1000
 RUN mkdir /data/surveys
 RUN mkdir /data/db
 
-EXPOSE 3000
-EXPOSE 8080
+EXPOSE 8081
 
 CMD ["sh", "/start.sh"]
