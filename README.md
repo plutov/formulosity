@@ -35,14 +35,10 @@ This approach offers a number of advantages, including:
 - [ ] Advanced validation rules
 - [ ] Detect survey changes in real time
 
-## See it in Action! Demo Links
+## See it in Action!
 
 <p align="center" width="100%">
-	<a href="https://formulosity.vercel.app/app">Console UI</a> -
-	<a href="https://formulosity.vercel.app/survey/rhaxwhxm76iu">simple</a> -
-	<a href="https://formulosity.vercel.app/survey/29zphubxwujn">custom_theme</a> -
-	<a href="https://formulosity.vercel.app/survey/6n28ezs64v2f">short</a> -
-	<a href="https://formulosity.vercel.app/survey/rqvzuy0hkau4">many_options</a>
+	<a href="https://formulosity.vercel.app/app">Admin Panel</a>
 </p>
 
 Note: use `user` / `pass` to login into the Console UI.
