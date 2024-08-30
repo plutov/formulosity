@@ -333,12 +333,22 @@ func (p *Sqlite) GetSurveySessionAnswers(sessionUUID string) ([]types.QuestionAn
 	answers := []types.QuestionAnswer{}
 	for rows.Next() {
 		answer := types.QuestionAnswer{}
-		var answerStr sql.NullString
-		err := rows.Scan(&answer.QuestionID, &answer.QuestionUUID, &answerStr)
+		var (
+			questionID   sql.NullString
+			questionUUID sql.NullString
+			answerStr    sql.NullString
+		)
+		err := rows.Scan(&questionID, &questionUUID, &answerStr)
 		if err != nil {
 			return nil, err
 		}
 
+		if !questionID.Valid || !questionUUID.Valid {
+			continue
+		}
+
+		answer.QuestionID = questionID.String
+		answer.QuestionUUID = questionUUID.String
 		answer.AnswerBytes = []byte(answerStr.String)
 		answers = append(answers, answer)
 	}

@@ -1,36 +1,36 @@
 questions:
-- type: single-choice
-  id: question1 # optional ID, must be unique across all questions
-  label: What is the capital of Germany?
-  # defined in variables.yaml
-  optionsFromVariable: german-city-options
-- type: multiple-choice
-  label: Which of the following are cities in Germany?
-  description: You can select multiple options
-  validation:
+  - type: single-choice
+    id: question1 # optional ID, must be unique across all questions
+    label: What is the capital of Germany?
+    # defined in variables.yaml
+    optionsFromVariable: german-city-options
+  - type: multiple-choice
+    label: Which of the following are cities in Germany?
+    description: You can select multiple options
+    validation:
+      min: 2
+      max: 4
+    options:
+      - Berlin
+      - Munich
+      - Paris
+      - London
+      - Hamburg
+      - Cologne
+      - Geneva
+      - Oslo
+  - type: short-text
+    label: What is the capital of Germany?
+  - type: long-text
+    label: What is the capital of Germany?
+  - type: date
+    label: When was the Berlin Wall built?
+  - type: rating
+    label: How much do you like Berlin?
     min: 1
-    max: 3
-  options:
-  - Berlin
-  - Munich
-  - Paris
-  - London
-  - Hamburg
-  - Cologne
-  - Geneva
-  - Oslo
-- type: short-text
-  label: What is the capital of Germany?
-- type: long-text
-  label: What is the capital of Germany?
-- type: date
-  label: When was the Berlin Wall built?
-- type: rating
-  label: How much do you like Berlin?
-  min: 1
-  max: 5
-- type: ranking
-  label: Rank the following cities by population
-  optionsFromVariable: german-city-options
-- type: yes-no
-  label: Is Berlin the capital of Germany?
+    max: 5
+  - type: ranking
+    label: Rank the following cities by population
+    optionsFromVariable: german-city-options
+  - type: yes-no
+    label: Is Berlin the capital of Germany?

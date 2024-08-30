@@ -4,10 +4,33 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/plutov/formulosity/api/pkg/log"
 	"github.com/plutov/formulosity/api/pkg/parser"
 	"github.com/plutov/formulosity/api/pkg/services"
 )
+
+func SyncSurveysOnChange(svc services.Services) {
+	watcher, _ := fsnotify.NewWatcher()
+	defer watcher.Close()
+
+	dir := os.Getenv("SURVEYS_DIR")
+
+	watcher.Add(dir)
+
+	done := make(chan bool)
+	go func() {
+		for {
+			select {
+			case event := <-watcher.Events:
+				log.With("event", event).Info("file change event received")
+				SyncSurveys(svc)
+			}
+		}
+	}()
+
+	<-done
+}
 
 func SyncSurveys(svc services.Services) error {
 	logCtx := log.With("func", "SyncSurveys")

@@ -34,6 +34,7 @@ export async function call(path: string, init?: RequestInit, host?: string) {
       data: data,
     }
   } catch (e) {
+    console.error('unable to call the api', e)
     return {
       status: 500,
       error: 'unable to call the api',

@@ -93,6 +93,13 @@ func (a TextAnswer) Value() (driver.Value, error) {
 }
 
 func (a *TextAnswer) Validate(q Question) error {
+	if q.Validation != nil && q.Validation.Min != nil && len(a.AnswerValue) < int(*q.Validation.Min) {
+		return fmt.Errorf("please write at least %d characters", *q.Validation.Min)
+	}
+	if q.Validation != nil && q.Validation.Max != nil && len(a.AnswerValue) > int(*q.Validation.Max) {
+		return fmt.Errorf("please write at most %d characters", *q.Validation.Max)
+	}
+
 	return nil
 }
 
@@ -121,6 +128,15 @@ func (a NumberAnswer) Value() (driver.Value, error) {
 }
 
 func (a *NumberAnswer) Validate(q Question) error {
+	if q.Type == QuestionType_Rating {
+		if q.Min != nil && a.AnswerValue < int64(*q.Min) {
+			return fmt.Errorf("minimum: %d", *q.Min)
+		}
+		if q.Max != nil && a.AnswerValue > int64(*q.Max) {
+			return fmt.Errorf("maximum: %d", *q.Max)
+		}
+	}
+
 	return nil
 }
 

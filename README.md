@@ -32,8 +32,10 @@ This approach offers a number of advantages, including:
 - [x] Admin user authentication
 - [x] Different database options: SQLite and Postgres
 - [x] Continue where you left off
-- [ ] Advanced validation rules
-- [ ] Detect survey changes in real time
+- [x] Advanced validation rules
+- [x] Detect survey changes in real time
+- [ ] Advanced question types
+- [ ] Pipe answers into the following questions
 
 ## See it in Action!
 
@@ -153,6 +155,10 @@ Prompts users for a brief written answer.
 ```yaml
 - type: short-text
   label: What is the capital of Germany?
+  # set min/max characters
+  validation:
+    min: 10
+    max: 100
 ```
 
 ### Long Text
@@ -162,6 +168,10 @@ Prompts users for a detailed written answer.
 ```yaml
 - type: long-text
   label: What is the capital of Germany?
+  # set min/max characters
+  validation:
+    min: 10
+    max: 100
 ```
 
 ### Single Choice
