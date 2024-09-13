@@ -2,7 +2,6 @@ import 'styles/global.css'
 import { ReactNode } from 'react'
 import { Metadata } from 'next'
 import { siteConfig } from 'lib/siteConfig'
-import { dm_sans, inter } from 'lib/fonts'
 
 export const metadata: Metadata = {
   title: {
@@ -31,13 +30,9 @@ type LayoutProps = { children?: ReactNode }
 
 export default async function RootLayout({ children }: LayoutProps) {
   return (
-    <html
-      lang="en"
-      className={`${inter.variable} ${dm_sans.variable}`}
-      suppressHydrationWarning
-    >
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head />
-      <body className="bg-slate-1 font-sans text-slate-12">{children}</body>
+      <body className="bg-slate-1 text-slate-12">{children}</body>
     </html>
   )
 }

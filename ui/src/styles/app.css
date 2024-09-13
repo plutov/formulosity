@@ -4,7 +4,7 @@
 
 @layer components {
   .sidebar > div {
-    @apply rounded-none mt-16;
+    @apply rounded-none mt-16 bg-gray-800;
   }
 
   .sidebar .org-name span {
@@ -16,11 +16,11 @@
   }
 
   .dropdown button {
-    @apply justify-start w-full dark:bg-gray-700 dark:enabled:hover:bg-gray-800;
+    @apply justify-start w-full bg-gray-700 enabled:hover:bg-gray-800;
   }
 
   .tabs button.active {
-    @apply dark:text-crimson-9 dark:border-crimson-9;
+    @apply text-crimson-9 border-crimson-9;
   }
 
   .tabs button {

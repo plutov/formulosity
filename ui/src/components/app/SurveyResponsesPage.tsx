@@ -23,10 +23,12 @@ import moment from 'moment'
 
 type SurveyResponsesPageProps = {
   currentSurvey: Survey
+  apiURL: string
 }
 
 export function SurveyResponsesPage({
   currentSurvey,
+  apiURL,
 }: SurveyResponsesPageProps) {
   currentSurvey = currentSurvey as Survey
 
@@ -57,7 +59,8 @@ export function SurveyResponsesPage({
     const offset = (page - 1) * limit
     const surveySessionsResp = await getSurveySessions(
       currentSurvey.uuid,
-      `limit=${limit}&offset=${offset}&sort_by=${sortBy}&order=${order}`
+      `limit=${limit}&offset=${offset}&sort_by=${sortBy}&order=${order}`,
+      apiURL
     )
 
     if (surveySessionsResp.error) {
@@ -85,13 +88,14 @@ export function SurveyResponsesPage({
       <div className="flex flex-col w-full">
         <div className="my-4">
           <Button
-            className="h-8 dark:bg-crimson-9 dark:enabled:hover:bg-crimson-11 p-2"
+            className="h-8 bg-crimson-9 enabled:hover:bg-crimson-11 p-2"
             onClick={async () => {
               setDownloading(true)
 
               const allSessionsResp = await getSurveySessions(
                 currentSurvey.uuid,
-                `limit=1000000&offset=0&sort_by=created_at&order=desc`
+                `limit=1000000&offset=0&sort_by=created_at&order=desc`,
+                apiURL
               )
 
               setDownloading(false)
@@ -119,7 +123,7 @@ export function SurveyResponsesPage({
             <p className="px-1">Export responses as JSON</p>
           </Button>
         </div>
-        <Table>
+        <Table className="text-gray-100">
           <Table.Head>
             {cols.map((col) => (
               <Table.HeadCell
@@ -149,13 +153,13 @@ export function SurveyResponsesPage({
           </Table.Head>
           <Table.Body className="divide-y">
             {sessions.map((session) => (
-              <Table.Row className="dark:bg-gray-800" key={session.uuid}>
+              <Table.Row className="bg-gray-800" key={session.uuid}>
                 <Table.Cell>{session.uuid}</Table.Cell>
                 <Table.Cell
                   className={`font-medium ${
                     session.status === SurveySessionStatus.Completed
-                      ? 'dark:text-emerald-300'
-                      : 'dark:text-yellow-300'
+                      ? 'text-emerald-300'
+                      : 'text-yellow-300'
                   }`}
                 >
                   {session.status === SurveySessionStatus.Completed && (
@@ -180,7 +184,7 @@ export function SurveyResponsesPage({
                 </Table.Cell>
                 <Table.Cell>
                   <Button
-                    className="h-8 dark:bg-crimson-9 dark:enabled:hover:bg-crimson-11 p-2"
+                    className="h-8 bg-crimson-9 enabled:hover:bg-crimson-11 p-2"
                     onClick={() => setViewSession(session)}
                   >
                     <HiOutlineEye />
@@ -213,7 +217,7 @@ export function SurveyResponsesPage({
         </Modal.Header>
         {viewSession && (
           <Modal.Body>
-            <Table>
+            <Table className="text-gray-100">
               <Table.Head>
                 <Table.HeadCell>Question ID</Table.HeadCell>
                 <Table.HeadCell>Question</Table.HeadCell>
@@ -254,7 +258,7 @@ export function SurveyResponsesPage({
                   }
                   return (
                     <Table.Row
-                      className="dark:bg-gray-800"
+                      className="bg-gray-800"
                       key={answer.question_uuid}
                     >
                       <Table.Cell>{answer.question_id}</Table.Cell>

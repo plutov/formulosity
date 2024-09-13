@@ -160,8 +160,12 @@ export async function getSurveySession(
   )
 }
 
-export async function getSurveySessions(surveyUUID: string, filter: string) {
-  return await get(`/app/surveys/${surveyUUID}/sessions?${filter}`)
+export async function getSurveySessions(
+  surveyUUID: string,
+  filter: string,
+  apiURL: string
+) {
+  return await get(`/app/surveys/${surveyUUID}/sessions?${filter}`, apiURL)
 }
 
 export async function updateSurvey(

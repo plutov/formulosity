@@ -33,7 +33,8 @@ export default async function ResponsesPage({
 
       const surveySessionsResp = await getSurveySessions(
         currentSurvey.uuid,
-        `limit=${SurveySessionsLimit}&offset=0&sort_by=created_at&order=desc`
+        `limit=${SurveySessionsLimit}&offset=0&sort_by=created_at&order=desc`,
+        ''
       )
       if (surveySessionsResp.error) {
         errMsg = 'Unable to fetch survey sessions'
@@ -53,9 +54,11 @@ export default async function ResponsesPage({
     )
   }
 
+  const apiURL = process.env.CONSOLE_API_ADDR || ''
+
   return (
     <AppLayout>
-      <SurveyResponsesPage currentSurvey={currentSurvey} />
+      <SurveyResponsesPage currentSurvey={currentSurvey} apiURL={apiURL} />
     </AppLayout>
   )
 }

@@ -28,12 +28,13 @@ This approach offers a number of advantages, including:
 - [x] Default theme
 - [x] Custom themes support
 - [x] Personalized options: intro, outro, etc.
-- [x] Cookie/IP deduplication
+- [x] Cookie/IP duplicate response protection
 - [x] Admin user authentication
 - [x] Different database options: SQLite and Postgres
 - [x] Continue where you left off
 - [x] Advanced validation rules
 - [x] Detect survey changes in real time
+- [x] Export responses in UI or via API
 - [ ] Advanced question types
 - [ ] Pipe answers into the following questions
 
@@ -249,6 +250,17 @@ Presents a question where users can only answer "yes" or "no".
   label: Is Berlin the capital of Germany?
 ```
 
+## Responses
+
+Responses can be shown in the UI and exported as a JSON. Alternatively you can use REST API to get survey resposnes:
+
+```bash
+curl -XGET \
+http://localhost:9900/app/surveys/{SURVEY_ID}/sessions?limit=100&offset=0&sort_by=created_at&order=desc
+```
+
+Where `{SURVEY_ID}` id the UUID of a given survey.
+
 ## Screenshots
 
 <p align="center" width="100%">
@@ -256,7 +268,7 @@ Presents a question where users can only answer "yes" or "no".
 	<img src="https://github.com/plutov/formulosity/blob/main/screenshots/survey.png" hspace="10" height="200px">
 </p>
 
-## Installation: Docker
+## Installation & Deployment
 
 ```
 docker-compose up -d --build
@@ -264,21 +276,13 @@ docker-compose up -d --build
 
 And you should be able to access the UI on http://localhost:3000 (default basic auth: `user:pass`).
 
-## Deployment
+You can deploy individual services to any cloud provider or self host them.
 
-You can deploy individual services to any cloud provider:
-
-- Go backend. It's packaged as a Docker container and can be deployed to any cloud provider.
-- Next.js frontend. It's also packaged as a Docker container, but also can be deployed to Vercel or Netlify.
+- Go backend. It's packaged as a Docker container and can be deployed anywhere.
+- Next.js frontend. It's also packaged as a Docker container, but also can be deployed to Vercel for example.
 - [Optional] Postgres database. You can use managed Postgres services or deploy it yourself.
 
 The demo service (links above) is deployed to Fly.io (Go, SQLite) and Vercel (Next.js) and are under the free tiers.
-
-There is also a combined version of Go and Next.js in the same Docker container. You can run it with:
-
-```
-docker-compose -f compose-combined.yml up -d --build
-```
 
 ### Environment Variables
 
@@ -291,14 +295,14 @@ API:
 
 UI:
 
-- `CONSOLE_API_ADDR_INTERNAL` - Internal address of the Go backend, e.g. `http://api:8080` (could be the same as `CONSOLE_API_ADDR` if UI amd API are not on the same network).
-- `CONSOLE_API_ADDR` - Public address of the Go backend.
+- `CONSOLE_API_ADDR` - Public address of the Go backend. Need to be accessible from the browser.
+- `CONSOLE_API_ADDR_INTERNAL` - Internal address of the Go backend, e.g. `http://api:8080` (could be the same as `CONSOLE_API_ADDR`).
 - `IRON_SESSION_SECRET` - Secret for session encryption
 - `HTTP_BASIC_AUTH` - Format: `user:pass` for basic auth (optional)
 
 ## Tech Stack
 
-- Backend: Go, Postgres, SQLite
+- Backend: Go, (Postgres or SQLite)
 - UI: Next.js, Tailwind CSS
 
 ## Create new SQLite/Postgres migration

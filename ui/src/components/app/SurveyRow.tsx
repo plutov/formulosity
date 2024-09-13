@@ -47,16 +47,14 @@ export function SurveyRow({ survey, apiURL }: SurveyCardProps) {
     survey.parse_status === SurveyParseStatus.Success && !isLaunched
 
   return (
-    <Table.Row className="dark:bg-gray-800" key={survey.uuid}>
-      <Table.Cell>
+    <Table.Row className="bg-gray-800" key={survey.uuid}>
+      <Table.Cell className="bg-gray-800">
         <div>
           <div className="text-base font-semibold">{survey.name}</div>
           {survey.config && (
-            <div className="font-normal text-gray-500">
-              {survey.config.title}
-            </div>
+            <div className="font-normal">{survey.config.title}</div>
           )}
-          <div className="font-normal text-gray-500">
+          <div className="font-normal">
             Created on: {moment(survey.created_at).format('MMM D, YYYY')}
           </div>
         </div>
@@ -93,7 +91,7 @@ export function SurveyRow({ survey, apiURL }: SurveyCardProps) {
       <Table.Cell>
         {(isLaunched || canSartSurvey) && (
           <Button
-            className="h-8 dark:bg-crimson-9 dark:enabled:hover:bg-crimson-11 px-2 py-0.5 rounded text-sm"
+            className="h-8 bg-crimson-9 enabled:hover:bg-crimson-11 px-2 py-0.5 rounded text-sm"
             onClick={async () => {
               updateSurveyStatus(
                 survey.uuid,

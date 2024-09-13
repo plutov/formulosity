@@ -1,6 +1,6 @@
 module github.com/plutov/formulosity/api
 
-go 1.22
+go 1.23
 
 require (
 	github.com/fsnotify/fsnotify v1.7.0
