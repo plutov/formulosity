@@ -185,6 +185,20 @@ export default function SurveyQuestions({
         />
       )
       break
+    case SurveyQuestionType.EmailText:
+      questionContent = (
+        <TextInput
+          defaultValue={selectedStringValue || ''}
+          placeholder="Type your email here..."
+          required
+          type='email'
+          onChange={(e) => {
+            const newValue = e.target.value === '' ? undefined : e.target.value
+            setSelectedStringValue(newValue)
+          }}
+        />
+      )
+      break
     case SurveyQuestionType.LongText:
       questionContent = (
         <Textarea
@@ -313,6 +327,7 @@ export default function SurveyQuestions({
       case SurveyQuestionType.SingleChoice:
       case SurveyQuestionType.ShortText:
       case SurveyQuestionType.LongText:
+      case SurveyQuestionType.EmailText:
       case SurveyQuestionType.Date:
         payload = {
           value: selectedStringValue,
