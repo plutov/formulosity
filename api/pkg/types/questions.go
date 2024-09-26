@@ -18,6 +18,7 @@ const (
 	QuestionType_Rating           QuestionType = "rating"
 	QuestionType_Ranking          QuestionType = "ranking"
 	QuestionType_YesNo            QuestionType = "yes-no"
+	QuestionType_Email            QuestionType = "email-text"
 )
 
 var supportedQuestionTypes = map[QuestionType]bool{
@@ -29,6 +30,7 @@ var supportedQuestionTypes = map[QuestionType]bool{
 	QuestionType_Rating:           true,
 	QuestionType_Ranking:          true,
 	QuestionType_YesNo:            true,
+	QuestionType_Email:            true,
 }
 
 type Questions struct {
@@ -178,6 +180,8 @@ func (q Question) GetAnswerType() (Answer, error) {
 		return &MultiOptionsAnswer{}, nil
 	case QuestionType_YesNo:
 		return &BoolAnswer{}, nil
+	case QuestionType_Email:
+		return &EmailAnswer{}, nil
 	default:
 		return nil, fmt.Errorf("question type %s is not supported", q.Type)
 	}

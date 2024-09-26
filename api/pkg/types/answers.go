@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"time"
 )
 
@@ -149,5 +150,24 @@ func (a BoolAnswer) Value() (driver.Value, error) {
 }
 
 func (a *BoolAnswer) Validate(q Question) error {
+	return nil
+}
+
+type EmailAnswer struct {
+	AnswerValue string `json:"value"`
+}
+
+func (a EmailAnswer) Value() (driver.Value, error) {
+	return json.Marshal(a)
+}
+
+func (a *EmailAnswer) Validate(q Question) error {
+	re := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+	isValidEmail := re.MatchString(a.AnswerValue)
+
+	if !isValidEmail {
+		return fmt.Errorf("%s is not a valid email, please enter a valid email", a.AnswerValue)
+	}
+
 	return nil
 }
