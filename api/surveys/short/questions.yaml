@@ -11,3 +11,6 @@ questions:
   - Cologne
   - Geneva
   - Oslo
+- type: email-text
+  label: Email
+  description: Please Enter your email.
