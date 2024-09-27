@@ -5,6 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/go-ozzo/ozzo-validation/v4/is"
 )
 
 const DATE_FORMAT = "2006-01-02"
@@ -149,5 +152,20 @@ func (a BoolAnswer) Value() (driver.Value, error) {
 }
 
 func (a *BoolAnswer) Validate(q Question) error {
+	return nil
+}
+
+type EmailAnswer struct {
+	AnswerValue string `json:"value"`
+}
+
+func (a EmailAnswer) Value() (driver.Value, error) {
+	return json.Marshal(a)
+}
+
+func (a *EmailAnswer) Validate(q Question) error {
+	if err := validation.Validate(a.AnswerValue, validation.Required, is.Email); err != nil {
+		return err
+	}
 	return nil
 }

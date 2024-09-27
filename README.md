@@ -250,6 +250,14 @@ Presents a question where users can only answer "yes" or "no".
   label: Is Berlin the capital of Germany?
 ```
 
+### Email
+
+Prompts user to enter their email
+```yaml
+- type: email
+  label: Please enter your email.
+```
+
 ## Responses
 
 Responses can be shown in the UI and exported as a JSON. Alternatively you can use REST API to get survey resposnes:
