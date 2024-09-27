@@ -29,7 +29,7 @@ func TestReadSurveys(t *testing.T) {
 	surveyConfigCopy := surveysCopy[3].Config
 
 	assert.Len(t, surveyConfig.Hash, 64)
-	assert.Len(t, surveyConfig.Questions.Questions, 8)
+	assert.Len(t, surveyConfig.Questions.Questions, 9)
 	assert.Len(t, surveyConfig.Variables.Variables, 1)
 	assert.Equal(t, "Survey Title", surveyConfig.Title)
 	assert.Equal(t, types.Theme_Default, surveyConfig.Theme)
