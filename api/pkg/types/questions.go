@@ -18,7 +18,7 @@ const (
 	QuestionType_Rating           QuestionType = "rating"
 	QuestionType_Ranking          QuestionType = "ranking"
 	QuestionType_YesNo            QuestionType = "yes-no"
-	QuestionType_Email            QuestionType = "email-text"
+	QuestionType_Email            QuestionType = "email"
 )
 
 var supportedQuestionTypes = map[QuestionType]bool{

@@ -37,3 +37,5 @@ questions:
     optionsFromVariable: german-city-options
   - type: yes-no
     label: Is Berlin the capital of Germany?
+  - type: email
+    label: Please Enter your email.
