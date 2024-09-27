@@ -4,8 +4,10 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"regexp"
 	"time"
+
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/go-ozzo/ozzo-validation/v4/is"
 )
 
 const DATE_FORMAT = "2006-01-02"
@@ -162,12 +164,8 @@ func (a EmailAnswer) Value() (driver.Value, error) {
 }
 
 func (a *EmailAnswer) Validate(q Question) error {
-	re := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
-	isValidEmail := re.MatchString(a.AnswerValue)
-
-	if !isValidEmail {
-		return fmt.Errorf("%s is not a valid email, please enter a valid email", a.AnswerValue)
+	if err := validation.Validate(a.AnswerValue, validation.Required, is.Email); err != nil {
+		return err
 	}
-
 	return nil
 }
