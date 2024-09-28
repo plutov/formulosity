@@ -185,13 +185,13 @@ export default function SurveyQuestions({
         />
       )
       break
-    case SurveyQuestionType.EmailText:
+    case SurveyQuestionType.Email:
       questionContent = (
         <TextInput
           defaultValue={selectedStringValue || ''}
           placeholder="Type your email here..."
           required
-          type='email'
+          type="email"
           onChange={(e) => {
             const newValue = e.target.value === '' ? undefined : e.target.value
             setSelectedStringValue(newValue)
@@ -327,7 +327,7 @@ export default function SurveyQuestions({
       case SurveyQuestionType.SingleChoice:
       case SurveyQuestionType.ShortText:
       case SurveyQuestionType.LongText:
-      case SurveyQuestionType.EmailText:
+      case SurveyQuestionType.Email:
       case SurveyQuestionType.Date:
         payload = {
           value: selectedStringValue,
@@ -437,7 +437,11 @@ export default function SurveyQuestions({
           {currentQuestion.description && (
             <p className="caption">{currentQuestion.description}</p>
           )}
-          <form className="form">{questionContent}</form>
+          <form className="form" onSubmit={async (e) => {
+            e.preventDefault()
+            await submitAnswer()
+          }}>
+            {questionContent}</form>
           <div className="w-full flex justify-center mt-8">
             <Button
               className="next-question"

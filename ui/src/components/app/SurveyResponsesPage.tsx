@@ -238,6 +238,7 @@ export function SurveyResponsesPage({
                       case SurveyQuestionType.ShortText:
                       case SurveyQuestionType.LongText:
                       case SurveyQuestionType.Date:
+                      case SurveyQuestionType.Email:
                         response = answer.answer.value as string
                         break
                       case SurveyQuestionType.MultipleChoice:

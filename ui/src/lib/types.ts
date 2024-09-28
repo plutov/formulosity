@@ -68,7 +68,7 @@ export enum SurveyQuestionType {
   Rating = 'rating',
   Ranking = 'ranking',
   YesNo = 'yes-no',
-  EmailText = 'email'
+  Email = 'email',
 }
 
 export enum SurveySessionStatus {
