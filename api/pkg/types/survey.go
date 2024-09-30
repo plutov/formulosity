@@ -67,10 +67,11 @@ type SurveyStats struct {
 }
 
 type SurveyConfig struct {
-	Title string `json:"title" yaml:"title"`
-	Intro string `json:"intro" yaml:"intro"`
-	Outro string `json:"outro" yaml:"outro"`
-	Theme string `json:"theme" yaml:"theme"`
+	Title   string         `json:"title" yaml:"title"`
+	Intro   string         `json:"intro" yaml:"intro"`
+	Outro   string         `json:"outro" yaml:"outro"`
+	Theme   string         `json:"theme" yaml:"theme"`
+	Webhook *WebhookConfig `json:"webhook" yaml:"webhook"`
 
 	Hash      string     `json:"hash" yaml:"-"`
 	Questions *Questions `json:"questions" yaml:"-"`
@@ -120,6 +121,12 @@ func (s *SurveyConfig) Validate() error {
 	}
 	if err := s.Questions.Validate(); err != nil {
 		return err
+	}
+
+	if s.Webhook != nil {
+		if err := s.Webhook.Validate(); err != nil {
+			return err
+		}
 	}
 
 	return nil

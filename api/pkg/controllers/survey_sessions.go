@@ -1,11 +1,16 @@
 package controllers
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/plutov/formulosity/api/pkg/http/response"
+	"github.com/plutov/formulosity/api/pkg/log"
 	"github.com/plutov/formulosity/api/pkg/surveys"
 	surveyspkg "github.com/plutov/formulosity/api/pkg/surveys"
 	"github.com/plutov/formulosity/api/pkg/types"
@@ -60,6 +65,8 @@ func (h *Handler) submitSurveyAnswer(c echo.Context) error {
 		return response.BadRequest(c, "question_uuid is required")
 	}
 
+	logCtx := log.With("question_uuid", questionUUID)
+
 	session, survey, err := h.getSurveySession(c)
 	if err != nil {
 		return response.BadRequest(c, err.Error())
@@ -93,6 +100,13 @@ func (h *Handler) submitSurveyAnswer(c echo.Context) error {
 		return response.NotFound(c, err.Error())
 	}
 
+	if session.Status == types.SurveySessionStatus_Completed {
+		if err := callWebhook(survey, session); err != nil {
+			msg := "unable to update webhook"
+			logCtx.WithError(err).Error(msg)
+		}
+	}
+
 	return response.Ok(c, *session)
 }
 
@@ -122,4 +136,27 @@ func (h *Handler) getSurveySessions(c echo.Context) error {
 		"sessions":    sessions,
 		"pages_count": pagesCount,
 	})
+}
+
+func callWebhook(survey *types.Survey, session *types.SurveySession) error {
+	client := &http.Client{}
+	data, err := json.Marshal(session)
+	if err != nil {
+		return fmt.Errorf("invalid post data, err: %v", err)
+	}
+
+	req, err := http.NewRequest(survey.Config.Webhook.Method, survey.Config.Webhook.URL, bytes.NewBuffer(data))
+	if err != nil {
+		return fmt.Errorf("invalid http request, err: %v", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("error making request, err: %v", err)
+	}
+	defer resp.Body.Close()
+
+	return nil
 }
