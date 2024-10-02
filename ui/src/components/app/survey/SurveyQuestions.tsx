@@ -15,6 +15,7 @@ import {
   TextInput,
   Textarea,
   Datepicker,
+  FileInput
 } from 'flowbite-react'
 import { HiArrowSmRight, HiSelector } from 'react-icons/hi'
 import { ErrCode } from 'components/ui/ErrCode'
@@ -62,6 +63,7 @@ export default function SurveyQuestions({
   >(undefined)
   const [selectedArrayValue, setSelectedArrayValue] = useState<string[]>([])
   const [sortableItems, setSortableItems] = useState<SortableItemType[]>([])
+  const [selectedFile, setSelectedFile] = useState<File | undefined>(undefined)
 
   if (surveySession.status === SurveySessionStatus.Completed) {
     return (
@@ -313,6 +315,19 @@ export default function SurveyQuestions({
         </Button.Group>
       )
       break
+    case SurveyQuestionType.File:
+      questionContent = (
+        <FileInput
+          defaultValue={selectedFile?.name || ''}
+          placeholder="Upload Your File here..."
+          required
+          onChange={(e) => {
+            const newValue = e.target.files?.[0] ?? undefined
+            setSelectedFile(newValue)
+          }}
+        />
+      )
+      break
   }
 
   async function submitAnswer() {
@@ -353,6 +368,14 @@ export default function SurveyQuestions({
           value: selectedStringValue === 'yes',
         }
         break
+      case SurveyQuestionType.File: {
+        const formData = new FormData();
+        if (selectedFile) {
+          formData.append('file', selectedFile);
+        }
+        payload = formData;
+        break;
+      }
     }
 
     const apiRes = await submitQuestionAnswer(
@@ -421,13 +444,15 @@ export default function SurveyQuestions({
         const yesNoBool = question.answer.value as boolean
         setSelectedStringValue(yesNoBool ? 'yes' : 'no')
         break
+      case SurveyQuestionType.File:
     }
   }
 
   const isSubmitDisabled =
     selectedStringValue === undefined &&
     selectedArrayValue.length === 0 &&
-    sortableItems.length === 0
+    sortableItems.length === 0 &&
+    selectedFile === undefined
 
   return (
     <>

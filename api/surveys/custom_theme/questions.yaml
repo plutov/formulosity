@@ -1,4 +1,11 @@
 questions:
+  - type: file
+    label: Upload a Berlin Image
+    validation:
+      formats: 
+        - .jpg
+        - .png
+      max_size_bytes: 5242880 # 5 * 1024 * 1024
   - type: single-choice
     id: question1 # optional ID, must be unique across all questions
     label: What is the capital of Germany?

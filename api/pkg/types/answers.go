@@ -169,3 +169,37 @@ func (a *EmailAnswer) Validate(q Question) error {
 	}
 	return nil
 }
+
+type FileAnswer struct {
+	AnswerValue string `json:"value"`
+	FileSize    int64
+	FileFormat  string
+}
+
+func (a FileAnswer) Value() (driver.Value, error) {
+	return json.Marshal(a)
+}
+
+func (a *FileAnswer) Validate(q Question) error {
+	if q.Type != QuestionType_File && q.Validation == nil {
+		return nil
+	}
+	if q.Validation.MaxSizeBytes != nil {
+        if a.FileSize > int64(*q.Validation.MaxSizeBytes) {
+            return fmt.Errorf("file size exceeds the maximum size of %d bytes", *q.Validation.MaxSizeBytes)
+        }
+	}
+	if q.Validation.Formats != nil {
+		formatValid := false
+		for _, allowedFormat := range *q.Validation.Formats {
+			if a.FileFormat == allowedFormat {
+				formatValid = true
+				break
+			}
+		}
+		if !formatValid {
+			return fmt.Errorf("file format is invalid: %s. Allowed formats: %v", a.FileFormat, *q.Validation.Formats)
+		}
+	}
+	return nil
+}

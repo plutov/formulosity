@@ -6,11 +6,12 @@ import (
 
 	"github.com/plutov/formulosity/api/pkg/log"
 	"github.com/plutov/formulosity/api/pkg/services"
+	"github.com/plutov/formulosity/api/pkg/storage"
 	"github.com/plutov/formulosity/api/pkg/types"
 )
 
 // returns 2 errors: general and error details
-func SubmitAnswer(svc services.Services, session *types.SurveySession, survey *types.Survey, question *types.Question, req []byte) (error, error) {
+func SubmitAnswer(svc services.Services, session *types.SurveySession, survey *types.Survey, question *types.Question, req []byte, file *types.File) (error, error) {
 	logCtx := log.With("session_uuid", session.UUID)
 	logCtx.Info("submitting answer")
 
@@ -19,12 +20,31 @@ func SubmitAnswer(svc services.Services, session *types.SurveySession, survey *t
 		return err, nil
 	}
 
-	if err := json.Unmarshal(req, &answer); err != nil {
-		return errors.New("invalid request format"), nil
-	}
+    switch a := answer.(type) {
+    case *types.FileAnswer:
+        if file != nil {
+			a.FileSize = file.Size
+			a.FileFormat = file.Format
+			if err := answer.Validate(*question); err != nil {
+				return errors.New("invalid answer"), err
+			}
 
-	if err := answer.Validate(*question); err != nil {
-		return errors.New("invalid answer"), err
+            filePath, err := storage.SaveFile(file)
+            if err != nil {
+                return errors.New("unable to save file"), nil
+            }
+            a.AnswerValue = filePath
+        } else {
+            return errors.New("file is required for this question type"), nil
+        }
+    default:
+		if err := json.Unmarshal(req, &answer); err != nil {
+			return errors.New("invalid request format"), nil
+		}
+
+		if err := answer.Validate(*question); err != nil {
+			return errors.New("invalid answer"), err
+		}
 	}
 
 	if err := svc.Storage.UpsertSurveyQuestionAnswer(session.UUID, question.UUID, answer); err != nil {

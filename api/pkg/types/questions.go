@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/gob"
 	"fmt"
+	"strings"
 )
 
 type QuestionType string
@@ -19,6 +20,7 @@ const (
 	QuestionType_Ranking          QuestionType = "ranking"
 	QuestionType_YesNo            QuestionType = "yes-no"
 	QuestionType_Email            QuestionType = "email"
+	QuestionType_File             QuestionType = "file"
 )
 
 var supportedQuestionTypes = map[QuestionType]bool{
@@ -31,6 +33,7 @@ var supportedQuestionTypes = map[QuestionType]bool{
 	QuestionType_Ranking:          true,
 	QuestionType_YesNo:            true,
 	QuestionType_Email:            true,
+	QuestionType_File:             true,
 }
 
 type Questions struct {
@@ -53,6 +56,8 @@ type Question struct {
 type QuestionValidation struct {
 	Min *int `json:"min,omitempty" yaml:"min,omitempty"`
 	Max *int `json:"max,omitempty" yaml:"max,omitempty"`
+	Formats *[]string `json:"formats,omitempty" yaml:"formats,omitempty"`
+	MaxSizeBytes      *int      `json:"max_size_bytes,omitempty" yaml:"max_size_bytes,omitempty"`
 }
 
 func (s *Questions) Validate() error {
@@ -96,6 +101,23 @@ func (s *Questions) Validate() error {
 		}
 	}
 
+	return nil
+}
+
+func (v QuestionValidation) ValidateFile() error {
+	if v.Formats == nil || len(*v.Formats) == 0 {
+		return fmt.Errorf("questions[].validation.formats is required")
+	}
+
+	if v.MaxSizeBytes != nil && *v.MaxSizeBytes < 0 {
+		return fmt.Errorf("questions[].validation.maxSizeBytes must be greater than or equal to 0")
+	}
+
+	for _, fileType := range *v.Formats {
+		if !strings.HasPrefix(fileType, ".") {
+			return fmt.Errorf("questions[].validation.formats is invalid: %s", fileType)
+		}
+	}
 	return nil
 }
 
@@ -182,6 +204,8 @@ func (q Question) GetAnswerType() (Answer, error) {
 		return &BoolAnswer{}, nil
 	case QuestionType_Email:
 		return &EmailAnswer{}, nil
+	case QuestionType_File:
+		return &FileAnswer{}, nil
 	default:
 		return nil, fmt.Errorf("question type %s is not supported", q.Type)
 	}
