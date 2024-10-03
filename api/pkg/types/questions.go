@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/gob"
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -54,10 +55,10 @@ type Question struct {
 }
 
 type QuestionValidation struct {
-	Min *int `json:"min,omitempty" yaml:"min,omitempty"`
-	Max *int `json:"max,omitempty" yaml:"max,omitempty"`
-	Formats *[]string `json:"formats,omitempty" yaml:"formats,omitempty"`
-	MaxSizeBytes      *int      `json:"max_size_bytes,omitempty" yaml:"max_size_bytes,omitempty"`
+	Min                 *int                `json:"min,omitempty" yaml:"min,omitempty"`
+	Max                 *int                `json:"max,omitempty" yaml:"max,omitempty"`
+	Formats             *[]string           `json:"formats,omitempty" yaml:"formats,omitempty"`
+	MaxSizeBytes        *string             `json:"max_size_bytes,omitempty" yaml:"max_size_bytes,omitempty"`
 }
 
 func (s *Questions) Validate() error {
@@ -109,8 +110,17 @@ func (v QuestionValidation) ValidateFile() error {
 		return fmt.Errorf("questions[].validation.formats is required")
 	}
 
-	if v.MaxSizeBytes != nil && *v.MaxSizeBytes < 0 {
-		return fmt.Errorf("questions[].validation.maxSizeBytes must be greater than or equal to 0")
+	if v.MaxSizeBytes != nil {
+		if *v.MaxSizeBytes == "" {
+			return fmt.Errorf("questions[].validation.maxSizeBytes is empty")
+		}
+		bytes, err := GetStringMultiplication(*v.MaxSizeBytes)
+		if err != nil {
+			return fmt.Errorf("questions[].validation.maxSizeBytes is invalid: %w", err)
+		}
+		if bytes <= 0 {
+			return fmt.Errorf("questions[].validation.maxSizeBytes must be greater than or equal to 0")
+		}
 	}
 
 	for _, fileType := range *v.Formats {
@@ -213,4 +223,20 @@ func (q Question) GetAnswerType() (Answer, error) {
 
 func (q Question) ValidateAnswer(answer interface{}) error {
 	return nil
+}
+
+func GetStringMultiplication(m string) (int64, error) {
+	parts := strings.Split(m, "*")
+
+	var result int64 = 1
+
+	for _, part := range parts {
+		num, err := strconv.ParseInt(part, 10, 64)
+		if err != nil {
+			return 0, err
+		}
+		result *= num
+	}
+
+	return int64(result), nil
 }

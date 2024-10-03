@@ -5,7 +5,7 @@ questions:
       formats: 
         - .jpg
         - .png
-      max_size_bytes: 5242880 # 5 * 1024 * 1024
+      max_size_bytes: 5*1024*1024 # 5 MB
   - type: single-choice
     id: question1 # optional ID, must be unique across all questions
     label: What is the capital of Germany?

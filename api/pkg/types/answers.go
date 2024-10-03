@@ -185,8 +185,9 @@ func (a *FileAnswer) Validate(q Question) error {
 		return nil
 	}
 	if q.Validation.MaxSizeBytes != nil {
-        if a.FileSize > int64(*q.Validation.MaxSizeBytes) {
-            return fmt.Errorf("file size exceeds the maximum size of %d bytes", *q.Validation.MaxSizeBytes)
+		bytes, _ := GetStringMultiplication(*q.Validation.MaxSizeBytes)
+        if a.FileSize > bytes {
+            return fmt.Errorf("file size exceeds the maximum size of %d bytes", bytes)
         }
 	}
 	if q.Validation.Formats != nil {
