@@ -121,6 +121,8 @@ func (v QuestionValidation) ValidateFile() error {
 		if bytes <= 0 {
 			return fmt.Errorf("questions[].validation.maxSizeBytes must be greater than or equal to 0")
 		}
+	} else {
+		return fmt.Errorf("questions[].validation.maxSizeBytes is required when questions[].type is file")
 	}
 
 	for _, fileType := range *v.Formats {
@@ -225,12 +227,15 @@ func (q Question) ValidateAnswer(answer interface{}) error {
 	return nil
 }
 
-func GetStringMultiplication(m string) (int64, error) {
-	parts := strings.Split(m, "*")
+
+func GetStringMultiplication(expression string) (int64, error) {
+	parts := strings.Split(expression, "*")
 
 	var result int64 = 1
 
 	for _, part := range parts {
+		part = strings.TrimSpace(part)
+
 		num, err := strconv.ParseInt(part, 10, 64)
 		if err != nil {
 			return 0, err

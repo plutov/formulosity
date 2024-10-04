@@ -258,6 +258,19 @@ Prompts user to enter their email
   label: Please enter your email.
 ```
 
+### File
+
+Prompts user to upload their file based on a given formats and maximum upload size.
+```yaml
+  - type: file
+    label: Upload a Berlin Image
+    validation:
+      formats: 
+        - .jpg
+        - .png
+      max_size_bytes: 5*1024*1024 # 5 MB
+```
+
 ## Responses
 
 Responses can be shown in the UI and exported as a JSON. Alternatively you can use REST API to get survey resposnes:

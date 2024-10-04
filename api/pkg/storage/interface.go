@@ -23,3 +23,9 @@ type Interface interface {
 	GetSurveySessionAnswers(sessionUUID string) ([]types.QuestionAnswer, error)
 	UpsertSurveyQuestionAnswer(sessionUUID string, questionUUID string, answer types.Answer) error
 }
+
+type FileInterface interface {
+	Init() error
+
+	SaveFile(file *types.File) (string, error)
+}

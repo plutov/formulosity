@@ -6,7 +6,6 @@ import (
 
 	"github.com/plutov/formulosity/api/pkg/log"
 	"github.com/plutov/formulosity/api/pkg/services"
-	"github.com/plutov/formulosity/api/pkg/storage"
 	"github.com/plutov/formulosity/api/pkg/types"
 )
 
@@ -25,11 +24,12 @@ func SubmitAnswer(svc services.Services, session *types.SurveySession, survey *t
         if file != nil {
 			a.FileSize = file.Size
 			a.FileFormat = file.Format
+
 			if err := answer.Validate(*question); err != nil {
 				return errors.New("invalid answer"), err
 			}
 
-            filePath, err := storage.SaveFile(file)
+            filePath, err := svc.FileStorage.SaveFile(file)
             if err != nil {
                 return errors.New("unable to save file"), nil
             }

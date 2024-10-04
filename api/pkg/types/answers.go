@@ -184,12 +184,19 @@ func (a *FileAnswer) Validate(q Question) error {
 	if q.Type != QuestionType_File && q.Validation == nil {
 		return nil
 	}
+
 	if q.Validation.MaxSizeBytes != nil {
-		bytes, _ := GetStringMultiplication(*q.Validation.MaxSizeBytes)
-        if a.FileSize > bytes {
-            return fmt.Errorf("file size exceeds the maximum size of %d bytes", bytes)
+		bytes, err := GetStringMultiplication(*q.Validation.MaxSizeBytes)
+        if err != nil {
+            return fmt.Errorf("invalid MaxSizeBytes format: %v", err)
         }
+        if a.FileSize > bytes {
+            return fmt.Errorf("file size exceeds the maximum size of %s", formatBytes(bytes))
+        }
+	} else {
+		return fmt.Errorf("questions[].validation.maxSizeBytes is required when questions[].type is file")
 	}
+
 	if q.Validation.Formats != nil {
 		formatValid := false
 		for _, allowedFormat := range *q.Validation.Formats {
@@ -203,4 +210,26 @@ func (a *FileAnswer) Validate(q Question) error {
 		}
 	}
 	return nil
+}
+
+func formatBytes(bytes int64) string {
+    const (
+        KB = 1024
+        MB = KB * 1024
+        GB = MB * 1024
+		TB = GB * 1024
+    )
+
+    switch {
+	case bytes >= TB:
+		return fmt.Sprintf("%.2f TB", float64(bytes)/float64(TB))
+    case bytes >= GB:
+        return fmt.Sprintf("%.2f GB", float64(bytes)/float64(GB))
+    case bytes >= MB:
+        return fmt.Sprintf("%.2f MB", float64(bytes)/float64(MB))
+    case bytes >= KB:
+        return fmt.Sprintf("%.2f KB", float64(bytes)/float64(KB))
+    default:
+        return fmt.Sprintf("%d bytes", bytes)
+    }
 }

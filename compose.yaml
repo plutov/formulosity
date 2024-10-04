@@ -17,7 +17,7 @@ services:
     volumes:
       - ./api/surveys:/root/surveys
       - ./api/sqlite3:/root/sqlite3
-      - uploadvolume:/root/uploads
+      - ./api/uploads:/root/uploads
 
   ui:
     restart: always
@@ -49,6 +49,4 @@ services:
 
 volumes:
   dbvolume:
-    driver: local
-  uploadvolume:
     driver: local
