@@ -8,7 +8,8 @@ import (
 )
 
 type Services struct {
-	Storage storage.Interface
+	Storage       storage.Interface
+	FileStorage   storage.FileInterface
 }
 
 func InitServices() (Services, error) {
@@ -24,6 +25,11 @@ func InitServices() (Services, error) {
 
 	if err := svc.Storage.Init(); err != nil {
 		return svc, fmt.Errorf("unable to init db %w", err)
+	}
+
+	svc.FileStorage = new(storage.File)
+	if err := svc.FileStorage.Init(); err != nil {
+		return svc, fmt.Errorf("unable to init file storage %w", err)
 	}
 
 	return svc, nil
