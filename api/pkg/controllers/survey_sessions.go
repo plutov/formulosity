@@ -2,20 +2,14 @@ package controllers
 
 import (
 	"bytes"
-<<<<<<< HEAD
 	"encoding/json"
-=======
->>>>>>> main
 	"errors"
 	"fmt"
 	"io"
-<<<<<<< HEAD
-	"net/http"
-=======
 	"log"
+	"net/http"
 	"path/filepath"
 	"strings"
->>>>>>> main
 
 	"github.com/labstack/echo/v4"
 	"github.com/plutov/formulosity/api/pkg/http/response"
@@ -192,14 +186,14 @@ func (h *Handler) getUploadedFile(c echo.Context, req []byte) (*types.File, erro
 			return nil, errors.New("file not provided")
 		}
 		fileName := header.Filename
-		fileExt := strings.ToLower(filepath.Ext(fileName)) 
+		fileExt := strings.ToLower(filepath.Ext(fileName))
 
 		defer file.Close()
 
 		uploadedFile = &types.File{
-			Name: header.Filename,
-			Data: file,
-			Size: header.Size,
+			Name:   header.Filename,
+			Data:   file,
+			Size:   header.Size,
 			Format: fileExt,
 		}
 	}
