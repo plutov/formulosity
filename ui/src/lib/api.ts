@@ -59,6 +59,17 @@ export async function post(path: string, payload: object, host?: string) {
   )
 }
 
+export async function postFormData(path: string, payload: FormData, host?: string) {
+  return call(
+    path,
+    {
+      method: 'POST',
+      body: payload,
+    },
+    host
+  );
+}
+
 export async function put(path: string, payload: object, host?: string) {
   const headers = {
     'Content-Type': 'application/json',
@@ -180,12 +191,20 @@ export async function submitQuestionAnswer(
   urlSlug: string,
   sessionId: string,
   questionUUID: string,
-  payload: object,
+  payload: object | FormData,
   apiURL: string
 ) {
-  return await post(
-    `/surveys/${urlSlug}/sessions/${sessionId}/questions/${questionUUID}/answers`,
-    payload,
-    apiURL
-  )
+  if (payload !instanceof FormData) {
+    return await postFormData(
+      `/surveys/${urlSlug}/sessions/${sessionId}/questions/${questionUUID}/answers`,
+      payload,
+      apiURL
+    )
+  } else {
+    return await post(
+      `/surveys/${urlSlug}/sessions/${sessionId}/questions/${questionUUID}/answers`,
+      payload,
+      apiURL
+    )
+  }
 }

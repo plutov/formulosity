@@ -5,6 +5,8 @@ import (
 	"crypto/sha256"
 	"encoding/gob"
 	"fmt"
+	"strconv"
+	"strings"
 )
 
 type QuestionType string
@@ -19,6 +21,7 @@ const (
 	QuestionType_Ranking          QuestionType = "ranking"
 	QuestionType_YesNo            QuestionType = "yes-no"
 	QuestionType_Email            QuestionType = "email"
+	QuestionType_File             QuestionType = "file"
 )
 
 var supportedQuestionTypes = map[QuestionType]bool{
@@ -31,6 +34,7 @@ var supportedQuestionTypes = map[QuestionType]bool{
 	QuestionType_Ranking:          true,
 	QuestionType_YesNo:            true,
 	QuestionType_Email:            true,
+	QuestionType_File:             true,
 }
 
 type Questions struct {
@@ -51,8 +55,10 @@ type Question struct {
 }
 
 type QuestionValidation struct {
-	Min *int `json:"min,omitempty" yaml:"min,omitempty"`
-	Max *int `json:"max,omitempty" yaml:"max,omitempty"`
+	Min                 *int                `json:"min,omitempty" yaml:"min,omitempty"`
+	Max                 *int                `json:"max,omitempty" yaml:"max,omitempty"`
+	Formats             *[]string           `json:"formats,omitempty" yaml:"formats,omitempty"`
+	MaxSizeBytes        *string             `json:"max_size_bytes,omitempty" yaml:"max_size_bytes,omitempty"`
 }
 
 func (s *Questions) Validate() error {
@@ -96,6 +102,34 @@ func (s *Questions) Validate() error {
 		}
 	}
 
+	return nil
+}
+
+func (v QuestionValidation) ValidateFile() error {
+	if v.Formats == nil || len(*v.Formats) == 0 {
+		return fmt.Errorf("questions[].validation.formats is required")
+	}
+
+	if v.MaxSizeBytes != nil {
+		if *v.MaxSizeBytes == "" {
+			return fmt.Errorf("questions[].validation.maxSizeBytes is empty")
+		}
+		bytes, err := GetStringMultiplication(*v.MaxSizeBytes)
+		if err != nil {
+			return fmt.Errorf("questions[].validation.maxSizeBytes is invalid: %w", err)
+		}
+		if bytes <= 0 {
+			return fmt.Errorf("questions[].validation.maxSizeBytes must be greater than or equal to 0")
+		}
+	} else {
+		return fmt.Errorf("questions[].validation.maxSizeBytes is required when questions[].type is file")
+	}
+
+	for _, fileType := range *v.Formats {
+		if !strings.HasPrefix(fileType, ".") {
+			return fmt.Errorf("questions[].validation.formats is invalid: %s", fileType)
+		}
+	}
 	return nil
 }
 
@@ -182,6 +216,8 @@ func (q Question) GetAnswerType() (Answer, error) {
 		return &BoolAnswer{}, nil
 	case QuestionType_Email:
 		return &EmailAnswer{}, nil
+	case QuestionType_File:
+		return &FileAnswer{}, nil
 	default:
 		return nil, fmt.Errorf("question type %s is not supported", q.Type)
 	}
@@ -189,4 +225,23 @@ func (q Question) GetAnswerType() (Answer, error) {
 
 func (q Question) ValidateAnswer(answer interface{}) error {
 	return nil
+}
+
+
+func GetStringMultiplication(expression string) (int64, error) {
+	parts := strings.Split(expression, "*")
+
+	var result int64 = 1
+
+	for _, part := range parts {
+		part = strings.TrimSpace(part)
+
+		num, err := strconv.ParseInt(part, 10, 64)
+		if err != nil {
+			return 0, err
+		}
+		result *= num
+	}
+
+	return int64(result), nil
 }

@@ -2,11 +2,20 @@ package controllers
 
 import (
 	"bytes"
+<<<<<<< HEAD
 	"encoding/json"
+=======
+>>>>>>> main
 	"errors"
 	"fmt"
 	"io"
+<<<<<<< HEAD
 	"net/http"
+=======
+	"log"
+	"path/filepath"
+	"strings"
+>>>>>>> main
 
 	"github.com/labstack/echo/v4"
 	"github.com/plutov/formulosity/api/pkg/http/response"
@@ -86,7 +95,12 @@ func (h *Handler) submitSurveyAnswer(c echo.Context) error {
 		return response.BadRequest(c, err.Error())
 	}
 
-	mainErr, detailsErr := surveys.SubmitAnswer(h.Services, session, survey, question, req)
+	file, err := h.getUploadedFile(c, req)
+	if err != nil {
+		return response.BadRequest(c, err.Error())
+	}
+
+	mainErr, detailsErr := surveys.SubmitAnswer(h.Services, session, survey, question, req, file)
 	if mainErr != nil {
 		if detailsErr != nil {
 			return response.BadRequestWithDetails(c, mainErr.Error(), detailsErr.Error())
@@ -159,4 +173,35 @@ func callWebhook(survey *types.Survey, session *types.SurveySession) error {
 	defer resp.Body.Close()
 
 	return nil
+}
+
+func (h *Handler) getUploadedFile(c echo.Context, req []byte) (*types.File, error) {
+	contentType := c.Request().Header.Get("Content-Type")
+	var uploadedFile *types.File
+	if strings.HasPrefix(contentType, "multipart/form-data") {
+		c.Request().Body = io.NopCloser(bytes.NewBuffer(req))
+
+		err := c.Request().ParseMultipartForm(10 << 20) // 10MB limit
+		if err != nil {
+			log.Println("ParseMultipartForm error:", err)
+			return nil, errors.New("unable to parse form data")
+		}
+
+		file, header, err := c.Request().FormFile("file")
+		if err != nil {
+			return nil, errors.New("file not provided")
+		}
+		fileName := header.Filename
+		fileExt := strings.ToLower(filepath.Ext(fileName)) 
+
+		defer file.Close()
+
+		uploadedFile = &types.File{
+			Name: header.Filename,
+			Data: file,
+			Size: header.Size,
+			Format: fileExt,
+		}
+	}
+	return uploadedFile, nil
 }
