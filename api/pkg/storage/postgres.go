@@ -417,3 +417,5 @@ func (p *Postgres) getSurveySessionsCount(surveyUUID string) (int, error) {
 	err := row.Scan(&count)
 	return count, err
 }
+
+func (p * Postgres) 
