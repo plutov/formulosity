@@ -309,8 +309,8 @@ The demo service (links above) is deployed to Fly.io (Go, SQLite) and Vercel (Ne
 
 API:
 
-- `DATABASE_TYPE` - `sqlite` or `postgres`
-- `DATABASE_URL` - Postgres or SQLite connection string
+- `DATABASE_TYPE` - `postgres`, `mysql`, or `sqlite`
+- `DATABASE_URL` - Postgres, Mysql or SQLite connection string
 - `LOG_LEVEL` - Log level, e.g. `info`
 - `SURVEYS_DIR` - Directory with surveys, e.g. `/root/surveys`. It's suggested to use mounted volume for this directory.
 

@@ -1,6 +1,7 @@
 api/pkg/github/tmp/
 api/pkg/parser/tmp/
 api/postgres-data/
+api/mysql-data/
 api/sqlite3/
 api/uploads/
 ui/node_modules
