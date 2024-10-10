@@ -5,18 +5,20 @@ services:
       context: ./api
     ports:
       - "9900:8080"
-    # depends_on:
-    # - postgres
+    depends_on:
+      mysql:
+        condition: service_healthy
     environment:
       - LOG_LEVEL=debug
-      - DATABASE_TYPE=sqlite # postgres|sqlite
+      - DATABASE_TYPE=mysql # postgres|sqlite|mysql
       # - DATABASE_URL=postgres://postgres:postgres@postgres:5432/formulosity?sslmode=disable
-      - DATABASE_URL=/root/sqlite3/formulosity.db
+      # - DATABASE_URL=/root/sqlite3/formulosity.db
+      - DATABASE_URL=user:pass@tcp(mysql:3306)/formulosity?charset=utf8mb4&parseTime=True&loc=Local
       - SURVEYS_DIR=/root/surveys
       - UPLOADS_DIR=/root/uploads
     volumes:
       - ./api/surveys:/root/surveys
-      - ./api/sqlite3:/root/sqlite3
+      # - ./api/sqlite3:/root/sqlite3
       - ./api/uploads:/root/uploads
 
   ui:
@@ -46,6 +48,27 @@ services:
   #     - ./api/postgres-data:/var/lib/postgresql/data
   #   logging:
   #     driver: none
+
+  mysql:
+    image: mysql:8
+    restart: always
+    environment:
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=pass
+      - MYSQL_DATABASE=formulosity
+      - MYSQL_RANDOM_ROOT_PASSWORD=true
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./api/mysql-data:/var/lib/mysql
+    logging:
+      driver: none
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      start_interval: 10s
+      start_period: 40s
+      timeout: 20s
+      retries: 10
 
 volumes:
   dbvolume:
