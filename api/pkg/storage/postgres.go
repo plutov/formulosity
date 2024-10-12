@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/golang-migrate/migrate/v4"
 	migratepg "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -416,4 +417,14 @@ func (p *Postgres) getSurveySessionsCount(surveyUUID string) (int, error) {
 	var count int
 	err := row.Scan(&count)
 	return count, err
+}
+
+func (p *Postgres) StoreWebhookResponse(sessionId int, responseStatus int, response string) error {
+	query := `INSERT INTO surveys_webhook_responses
+		(created_at, session_id, response_status, response)
+		VALUES ($1, $2, $3, $4);`
+
+	createdAtStr := time.Now().UTC().Format(types.DateTimeFormat)
+	_, err := p.conn.Exec(query, createdAtStr, sessionId, responseStatus, response)
+	return err
 }

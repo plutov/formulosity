@@ -466,3 +466,14 @@ func (p *Sqlite) getSurveySessionsCount(surveyUUID string) (int, error) {
 	err := row.Scan(&count)
 	return count, err
 }
+
+func (p *Sqlite) StoreWebhookResponse(sessionId int, responseStatus int, response string) error {
+	query := `INSERT INTO surveys_webhook_responses
+		(created_at, session_id, response_status, response)
+		VALUES ($1, $2, $3, $4);`
+
+	createdAtStr := time.Now().UTC().Format(types.DateTimeFormat)
+
+	_, err := p.conn.Exec(query, createdAtStr, sessionId, responseStatus, response)
+	return err
+}

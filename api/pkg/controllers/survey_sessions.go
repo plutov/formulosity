@@ -2,12 +2,8 @@ package controllers
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
-	"log"
-	"net/http"
 	"path/filepath"
 	"strings"
 
@@ -68,8 +64,6 @@ func (h *Handler) submitSurveyAnswer(c echo.Context) error {
 		return response.BadRequest(c, "question_uuid is required")
 	}
 
-	logCtx := log.With("question_uuid", questionUUID)
-
 	session, survey, err := h.getSurveySession(c)
 	if err != nil {
 		return response.BadRequest(c, err.Error())
@@ -109,10 +103,13 @@ func (h *Handler) submitSurveyAnswer(c echo.Context) error {
 	}
 
 	if session.Status == types.SurveySessionStatus_Completed {
-		if err := callWebhook(survey, session); err != nil {
-			msg := "unable to update webhook"
-			logCtx.WithError(err).Error(msg)
-		}
+		logCtx := log.With("question_uuid", questionUUID)
+		go func() {
+			if err := surveyspkg.CallWebhook(h.Services, survey, session); err != nil {
+				msg := "unable to update webhook"
+				logCtx.WithError(err).Error(msg)
+			}
+		}()
 	}
 
 	return response.Ok(c, *session)
@@ -146,29 +143,6 @@ func (h *Handler) getSurveySessions(c echo.Context) error {
 	})
 }
 
-func callWebhook(survey *types.Survey, session *types.SurveySession) error {
-	client := &http.Client{}
-	data, err := json.Marshal(session)
-	if err != nil {
-		return fmt.Errorf("invalid post data, err: %v", err)
-	}
-
-	req, err := http.NewRequest(survey.Config.Webhook.Method, survey.Config.Webhook.URL, bytes.NewBuffer(data))
-	if err != nil {
-		return fmt.Errorf("invalid http request, err: %v", err)
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return fmt.Errorf("error making request, err: %v", err)
-	}
-	defer resp.Body.Close()
-
-	return nil
-}
-
 func (h *Handler) getUploadedFile(c echo.Context, req []byte) (*types.File, error) {
 	contentType := c.Request().Header.Get("Content-Type")
 	var uploadedFile *types.File
@@ -177,7 +151,7 @@ func (h *Handler) getUploadedFile(c echo.Context, req []byte) (*types.File, erro
 
 		err := c.Request().ParseMultipartForm(10 << 20) // 10MB limit
 		if err != nil {
-			log.Println("ParseMultipartForm error:", err)
+			// log.Println("ParseMultipartForm error:", err)
 			return nil, errors.New("unable to parse form data")
 		}
 
