@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"log"
 	"path/filepath"
 	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/plutov/formulosity/api/pkg/http/response"
-	"github.com/plutov/formulosity/api/pkg/log"
+
 	"github.com/plutov/formulosity/api/pkg/surveys"
 	surveyspkg "github.com/plutov/formulosity/api/pkg/surveys"
 	"github.com/plutov/formulosity/api/pkg/types"
