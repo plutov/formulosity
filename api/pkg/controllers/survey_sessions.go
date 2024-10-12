@@ -103,11 +103,9 @@ func (h *Handler) submitSurveyAnswer(c echo.Context) error {
 	}
 
 	if session.Status == types.SurveySessionStatus_Completed {
-		logCtx := log.With("question_uuid", questionUUID)
 		go func() {
 			if err := surveyspkg.CallWebhook(h.Services, survey, session); err != nil {
-				msg := "unable to update webhook"
-				logCtx.WithError(err).Error(msg)
+				log.Println("call webhook error:", err)
 			}
 		}()
 	}
@@ -151,7 +149,7 @@ func (h *Handler) getUploadedFile(c echo.Context, req []byte) (*types.File, erro
 
 		err := c.Request().ParseMultipartForm(10 << 20) // 10MB limit
 		if err != nil {
-			// log.Println("ParseMultipartForm error:", err)
+			log.Println("ParseMultipartForm error:", err)
 			return nil, errors.New("unable to parse form data")
 		}
 
