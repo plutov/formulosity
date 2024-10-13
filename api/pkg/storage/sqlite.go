@@ -427,8 +427,13 @@ func (p *Sqlite) GetSurveySessionsWithAnswers(surveyUUID string, filter *types.S
 			session.CompletedAt = &completedAt
 		}
 		answer.AnswerBytes = []byte(answerStr.String)
-		// fmt.Println(httpStatusCode)
-		// fmt.Println(httpResponse)
+
+		if httpStatusCode.Valid && httpResponse.Valid {
+			session.WebhookData = types.WebhookData{
+				StatusCode: httpStatusCode.Int16,
+				Response:   httpResponse.String,
+			}
+		}
 
 		if _, ok := sessionsMap[session.UUID]; !ok {
 			session.QuestionAnswers = []types.QuestionAnswer{}

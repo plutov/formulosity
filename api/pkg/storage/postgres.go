@@ -348,11 +348,12 @@ func (p *Postgres) GetSurveySessionsWithAnswers(surveyUUID string, filter *types
 		LIMIT %d OFFSET %d
 	)
 	SELECT
-		ss.id, ss.uuid, ss.created_at, ss.completed_at, ss.status, q.id, q.uuid, sa.answer
+		ss.id, ss.uuid, ss.created_at, ss.completed_at, ss.status, q.id, q.uuid, sa.answer, w.response_status, w.response
 	FROM limited_sessions AS ss
 	INNER JOIN surveys AS s ON s.id = ss.survey_id
 	LEFT JOIN surveys_answers AS sa ON sa.session_id = ss.id
 	LEFT JOIN surveys_questions AS q ON q.id = sa.question_id
+	LEFT JOIN surveys_webhook_responses AS w ON w.session_id = ss.id
 	WHERE s.uuid=$1
 	ORDER BY ss.%s %s
 	;`, filter.SortBy, filter.Order, filter.Limit, filter.Offset, filter.SortBy, filter.Order)
@@ -366,16 +367,19 @@ func (p *Postgres) GetSurveySessionsWithAnswers(surveyUUID string, filter *types
 	sessionsMap := map[string]types.SurveySession{}
 	for rows.Next() {
 		session := types.SurveySession{}
+		webhookData := types.WebhookData{}
 		answer := types.QuestionAnswer{}
 		var (
 			questionID   sql.NullString
 			questionUUID sql.NullString
 		)
 
-		err := rows.Scan(&session.ID, &session.UUID, &session.CreatedAt, &session.CompletedAt, &session.Status, &questionID, &questionUUID, &answer.AnswerBytes)
+		err := rows.Scan(&session.ID, &session.UUID, &session.CreatedAt, &session.CompletedAt, &session.Status, &questionID, &questionUUID, &answer.AnswerBytes, &webhookData.StatusCode, &webhookData.Response)
 		if err != nil {
 			return nil, 0, err
 		}
+
+		session.WebhookData = webhookData
 
 		if _, ok := sessionsMap[session.UUID]; !ok {
 			session.QuestionAnswers = []types.QuestionAnswer{}

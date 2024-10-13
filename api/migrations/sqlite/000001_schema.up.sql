@@ -43,12 +43,3 @@ CREATE TABLE surveys_answers (
 );
 
 CREATE UNIQUE INDEX surveys_answers_unique ON surveys_answers (session_id, question_id);
-
-CREATE TABLE surveys_webhook_responses (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    created_at TEXT,
-    session_id INTEGER NOT NULL UNIQUE,
-    response_status INTEGER NOT NULL,
-    response TEXT,
-    FOREIGN KEY (session_id) REFERENCES surveys_sessions (id) ON DELETE CASCADE,
-);

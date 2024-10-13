@@ -83,6 +83,12 @@ export type SurveySession = {
   created_at: string
   completed_at: string
   question_answers: SurveyQuestionAnswer[]
+  webhookData: WebhookData
+}
+
+export type WebhookData = {
+  response: string
+  statusCode: number
 }
 
 export type SurveyQuestionAnswer = {
