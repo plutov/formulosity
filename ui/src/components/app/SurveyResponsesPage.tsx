@@ -183,16 +183,14 @@ export function SurveyResponsesPage({
                   {session.completed_at &&
                     moment(session.completed_at).format('MMM D, YYYY h:mm a')}
                 </Table.Cell>
-                <Table.Cell>
-                  {session.webhookData.statusCode}
-                </Table.Cell>
+                <Table.Cell>{session.webhookData.statusCode}</Table.Cell>
                 <Table.Cell>
                   <Button
                     className="h-8 bg-crimson-9 enabled:hover:bg-crimson-11 p-2"
                     onClick={() => setViewSession(session)}
                   >
                     <HiOutlineEye />
-                    <p className="px-1">View Response</p>
+                    <p className="px-1">View</p>
                   </Button>
                 </Table.Cell>
               </Table.Row>
