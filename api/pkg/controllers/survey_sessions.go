@@ -10,6 +10,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/plutov/formulosity/api/pkg/http/response"
+
 	"github.com/plutov/formulosity/api/pkg/surveys"
 	surveyspkg "github.com/plutov/formulosity/api/pkg/surveys"
 	"github.com/plutov/formulosity/api/pkg/types"
@@ -102,6 +103,14 @@ func (h *Handler) submitSurveyAnswer(c echo.Context) error {
 		return response.NotFound(c, err.Error())
 	}
 
+	if session.Status == types.SurveySessionStatus_Completed {
+		go func() {
+			if err := surveyspkg.CallWebhook(h.Services, survey, session); err != nil {
+				log.Println("call webhook error:", err)
+			}
+		}()
+	}
+
 	return response.Ok(c, *session)
 }
 
@@ -150,14 +159,14 @@ func (h *Handler) getUploadedFile(c echo.Context, req []byte) (*types.File, erro
 			return nil, errors.New("file not provided")
 		}
 		fileName := header.Filename
-		fileExt := strings.ToLower(filepath.Ext(fileName)) 
+		fileExt := strings.ToLower(filepath.Ext(fileName))
 
 		defer file.Close()
 
 		uploadedFile = &types.File{
-			Name: header.Filename,
-			Data: file,
-			Size: header.Size,
+			Name:   header.Filename,
+			Data:   file,
+			Size:   header.Size,
 			Format: fileExt,
 		}
 	}

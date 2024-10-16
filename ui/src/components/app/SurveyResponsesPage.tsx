@@ -149,6 +149,7 @@ export function SurveyResponsesPage({
                 {col.label}
               </Table.HeadCell>
             ))}
+            <Table.HeadCell>Webhook Status</Table.HeadCell>
             <Table.HeadCell>Actions</Table.HeadCell>
           </Table.Head>
           <Table.Body className="divide-y">
@@ -181,6 +182,9 @@ export function SurveyResponsesPage({
                 <Table.Cell>
                   {session.completed_at &&
                     moment(session.completed_at).format('MMM D, YYYY h:mm a')}
+                </Table.Cell>
+                <Table.Cell>
+                  {session.webhookData.statusCode}
                 </Table.Cell>
                 <Table.Cell>
                   <Button

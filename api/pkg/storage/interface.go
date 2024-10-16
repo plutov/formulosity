@@ -22,6 +22,8 @@ type Interface interface {
 	GetSurveySessionsWithAnswers(surveyUUID string, filter *types.SurveySessionsFilter) ([]types.SurveySession, int, error)
 	GetSurveySessionAnswers(sessionUUID string) ([]types.QuestionAnswer, error)
 	UpsertSurveyQuestionAnswer(sessionUUID string, questionUUID string, answer types.Answer) error
+
+	StoreWebhookResponse(sessionId int, responseStatus int, response string) error
 }
 
 type FileInterface interface {
