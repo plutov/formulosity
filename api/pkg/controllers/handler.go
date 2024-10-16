@@ -6,11 +6,13 @@ import (
 
 type Handler struct {
 	services.Services
+	JWTService services.JwtService
 }
 
-func NewHandler(svc services.Services) *Handler {
+func NewHandler(svc services.Services, jwtSvc services.JwtService) *Handler {
 	h := &Handler{
-		Services: svc,
+		Services:   svc,
+		JWTService: jwtSvc,
 	}
 	return h
 }

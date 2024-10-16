@@ -14,6 +14,8 @@ func NewRouter(h *Handler) *echo.Echo {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORS())
+	e.POST("/signup", h.registerUser)
+	e.POST("/login", h.loginUser)
 
 	e.GET("/", h.healthCheckHandler)
 	e.GET("/app/surveys", h.getSurveys)

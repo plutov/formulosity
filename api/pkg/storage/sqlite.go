@@ -80,6 +80,76 @@ func (p *Sqlite) Migrate() error {
 	return nil
 }
 
+func (s *Sqlite)GetUserById(id int64)(*types.User, error){
+	query:=`SELECT id, created_at, name, email, password_hash, activated, version FROM users WHERE id = $1`
+	var user types.User
+    err:=p.conn.QueryRow(query,id).Scan(
+		&user.Id,
+		&user.CreatedAt,
+		&user.Name,
+		&user.Email,
+		&user.Password.hash,
+		&user.Activated,
+		&user.Version,	
+	)
+	if err!= nil{
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, types.ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+	return &user, nil
+}
+
+
+func (p *Sqlite)GetUserByEmail(email string)(*types.User, error){
+	query := `
+		SELECT id, created_at, name, email, password_hash, activated, version
+		FROM users
+		WHERE email = $1`	
+	var user types.User
+	err := p.Db.QueryRow(query, email).Scan(
+		&user.Id,
+		&user.CreatedAt,
+		&user.Name,
+		&user.Email,
+		&user.Password.hash,
+		&user.Activated,
+		&user.Version,
+	)
+	if err!= nil{
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, types.ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+	return &user, nil
+}
+
+
+func (p *Sqlite)CreateUser(user *types.User)(error){
+	query := `
+		INSERT INTO users (name, email, password_hash)
+		VALUES ($1, $2, $3)
+		RETURNING id, created_at, version`
+	args := []any{user.Name, user.Email, user.Password.hash}
+	err:=p.conn.QueryRow(query, ...args).Scan(&user.Id, &user.Created, &user.Version)
+
+	if err != nil{
+		switch {
+			case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key"`:
+				return types.ErrDuplicateEmail
+			default:
+				return err
+		}
+	}
+	return nil
+}
+
 func (p *Sqlite) CreateSurvey(survey *types.Survey) error {
 	query := `INSERT INTO surveys
 		(parse_status, delivery_status, error_log, name, config, url_slug, uuid, created_at)

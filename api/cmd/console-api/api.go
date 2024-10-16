@@ -5,6 +5,7 @@ import (
 
 	controllers "github.com/plutov/formulosity/api/pkg/controllers"
 	"github.com/plutov/formulosity/api/pkg/log"
+	"github.com/plutov/formulosity/api/pkg/middleware"
 	"github.com/plutov/formulosity/api/pkg/services"
 	"github.com/plutov/formulosity/api/pkg/surveys"
 )
@@ -21,17 +22,25 @@ func main() {
 	if err != nil {
 		log.WithError(err).Fatal("unable to init dependencies")
 	}
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		log.WithError(err).Fatal("JWT_SECRET environment variable is not set")
+	}
+	jwtSvc := services.NewJWTService(jwtSecret, svc)
 
 	if err := surveys.SyncSurveys(svc); err != nil {
 		log.WithError(err).Fatal("unable to sync surveys")
 	}
 
-	handler := controllers.NewHandler(svc)
+	handler := controllers.NewHandler(svc, jwtSvc)
 	if err != nil {
 		log.WithError(err).Fatal("unable to start server")
 	}
 
 	r := controllers.NewRouter(handler)
+	authMiddleware := middleware.AuthMiddleware(jwtSvc)
+
+	r.Group("/app").Use(authMiddleware)
 
 	if err := r.Start(":8080"); err != nil {
 		log.WithError(err).Fatal("shutting down the server")

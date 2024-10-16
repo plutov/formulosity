@@ -22,4 +22,8 @@ type Interface interface {
 	GetSurveySessionsWithAnswers(surveyUUID string, filter *types.SurveySessionsFilter) ([]types.SurveySession, int, error)
 	GetSurveySessionAnswers(sessionUUID string) ([]types.QuestionAnswer, error)
 	UpsertSurveyQuestionAnswer(sessionUUID string, questionUUID string, answer types.Answer) error
+
+	CreateUser(user *types.User) error
+	GetUserByEmail(email string) (*types.User, error)
+	GetUserById(id int64) (*types.User, error)
 }

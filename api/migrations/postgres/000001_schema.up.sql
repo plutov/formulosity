@@ -65,5 +65,4 @@ CREATE TABLE IF NOT EXISTS
         name text NOT NULL,
         email citext UNIQUE NOT NULL,
         password_hash bytea NOT NULL,
-        activated bool NOT NULL,
 )
