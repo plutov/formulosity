@@ -28,4 +28,5 @@ type FileInterface interface {
 	Init() error
 
 	SaveFile(file *types.File) (string, error)
+	IsFileExist(fileName string) (bool, string, error)
 }

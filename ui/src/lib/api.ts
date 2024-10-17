@@ -208,3 +208,19 @@ export async function submitQuestionAnswer(
     )
   }
 }
+
+export async function download(
+  surveyUUID: string,
+  fileName: string,
+  apiURL: string
+) {
+  const host = apiURL;
+  const path = `/app/surveys/${surveyUUID}/download/${fileName}`
+  const res = await fetch(`${host}${path}`)
+  const blob = await res.blob();
+  const fileUrl = URL.createObjectURL(blob);
+  const a = document.createElement("a");a.href = fileUrl;
+  a.download = fileName;
+  a.click();
+  URL.revokeObjectURL(fileUrl);
+}

@@ -19,9 +19,9 @@ func SubmitAnswer(svc services.Services, session *types.SurveySession, survey *t
 		return err, nil
 	}
 
-    switch a := answer.(type) {
-    case *types.FileAnswer:
-        if file != nil {
+	switch a := answer.(type) {
+	case *types.FileAnswer:
+		if file != nil {
 			a.FileSize = file.Size
 			a.FileFormat = file.Format
 
@@ -29,15 +29,15 @@ func SubmitAnswer(svc services.Services, session *types.SurveySession, survey *t
 				return errors.New("invalid answer"), err
 			}
 
-            filePath, err := svc.FileStorage.SaveFile(file)
-            if err != nil {
-                return errors.New("unable to save file"), nil
-            }
-            a.AnswerValue = filePath
-        } else {
-            return errors.New("file is required for this question type"), nil
-        }
-    default:
+			filePath, err := svc.FileStorage.SaveFile(file)
+			if err != nil {
+				return errors.New("unable to save file"), nil
+			}
+			a.AnswerValue = filePath
+		} else {
+			return errors.New("file is required for this question type"), nil
+		}
+	default:
 		if err := json.Unmarshal(req, &answer); err != nil {
 			return errors.New("invalid request format"), nil
 		}

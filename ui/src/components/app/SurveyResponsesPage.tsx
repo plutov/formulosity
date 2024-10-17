@@ -18,7 +18,7 @@ import {
   SurveySessionStatus,
   SurveySessionsLimit,
 } from 'lib/types'
-import { getSurveySessions } from 'lib/api'
+import { getSurveySessions, download } from 'lib/api'
 import moment from 'moment'
 
 type SurveyResponsesPageProps = {
@@ -46,6 +46,10 @@ export function SurveyResponsesPage({
     setCurrentPage(page)
 
     await fetchResponses(page, sortBy, order)
+  }
+
+  const downloadFile = async (path: string) => {
+    await download(currentSurvey.uuid, path.substring(path.lastIndexOf("/")+1), apiURL)
   }
 
   const fetchResponses = async (
@@ -232,6 +236,7 @@ export function SurveyResponsesPage({
                   )
 
                   let response = ''
+                  let isFile = false;
                   if (question && answer.answer) {
                     switch (question.type) {
                       case SurveyQuestionType.SingleChoice:
@@ -255,6 +260,10 @@ export function SurveyResponsesPage({
                           ? 'Yes'
                           : 'No'
                         break
+                      case SurveyQuestionType.File:
+                        isFile = true
+                        response = (answer.answer.value as string)
+                        break
                     }
                   }
                   return (
@@ -264,7 +273,16 @@ export function SurveyResponsesPage({
                     >
                       <Table.Cell>{answer.question_id}</Table.Cell>
                       <Table.Cell>{question && question.label}</Table.Cell>
-                      <Table.Cell>{response}</Table.Cell>
+                      <Table.Cell>
+                        {isFile ? (
+                          <Button className="h-8 bg-crimson-9 enabled:hover:bg-crimson-11 p-2" onClick={() => downloadFile(response)}>
+                            <HiOutlineDownload />
+                            <p>Download</p>
+                          </Button>)
+                          : (
+                          <p>{response}</p>
+                          )}
+                      </Table.Cell>
                     </Table.Row>
                   )
                 })}
