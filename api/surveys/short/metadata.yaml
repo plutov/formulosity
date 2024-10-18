@@ -4,3 +4,6 @@ intro: |
   Welcome to the survey.
 outro: |
   Thank you for taking the survey.
+webhook:
+  url: https://formulosity.requestcatcher.com/
+  method: POST

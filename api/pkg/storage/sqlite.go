@@ -386,11 +386,12 @@ func (p *Sqlite) GetSurveySessionsWithAnswers(surveyUUID string, filter *types.S
 		LIMIT %d OFFSET %d
 	)
 	SELECT
-		ss.id, ss.uuid, ss.created_at, ss.completed_at, ss.status, q.id, q.uuid, sa.answer
+		ss.id, ss.uuid, ss.created_at, ss.completed_at, ss.status, q.id, q.uuid, sa.answer, w.response_status, w.response
 	FROM limited_sessions AS ss
 	INNER JOIN surveys AS s ON s.id = ss.survey_id
 	LEFT JOIN surveys_answers AS sa ON sa.session_id = ss.id
 	LEFT JOIN surveys_questions AS q ON q.id = sa.question_id
+	LEFT JOIN surveys_webhook_responses AS w ON w.session_id = ss.id
 	WHERE s.uuid=$1
 	ORDER BY ss.%s %s
 	;`, filter.SortBy, filter.Order, filter.Limit, filter.Offset, filter.SortBy, filter.Order)
@@ -411,9 +412,11 @@ func (p *Sqlite) GetSurveySessionsWithAnswers(surveyUUID string, filter *types.S
 			createdAtStr   sql.NullString
 			completedAtStr sql.NullString
 			answerStr      sql.NullString
+			httpStatusCode sql.NullInt16
+			httpResponse   sql.NullString
 		)
 
-		err := rows.Scan(&session.ID, &session.UUID, &createdAtStr, &completedAtStr, &session.Status, &questionID, &questionUUID, &answerStr)
+		err := rows.Scan(&session.ID, &session.UUID, &createdAtStr, &completedAtStr, &session.Status, &questionID, &questionUUID, &answerStr, &httpStatusCode, &httpResponse)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -424,6 +427,13 @@ func (p *Sqlite) GetSurveySessionsWithAnswers(surveyUUID string, filter *types.S
 			session.CompletedAt = &completedAt
 		}
 		answer.AnswerBytes = []byte(answerStr.String)
+
+		if httpStatusCode.Valid && httpResponse.Valid {
+			session.WebhookData = types.WebhookData{
+				StatusCode: httpStatusCode.Int16,
+				Response:   httpResponse.String,
+			}
+		}
 
 		if _, ok := sessionsMap[session.UUID]; !ok {
 			session.QuestionAnswers = []types.QuestionAnswer{}
@@ -465,4 +475,15 @@ func (p *Sqlite) getSurveySessionsCount(surveyUUID string) (int, error) {
 	var count int
 	err := row.Scan(&count)
 	return count, err
+}
+
+func (p *Sqlite) StoreWebhookResponse(sessionId int, responseStatus int, response string) error {
+	query := `INSERT INTO surveys_webhook_responses
+		(created_at, session_id, response_status, response)
+		VALUES ($1, $2, $3, $4);`
+
+	createdAtStr := time.Now().UTC().Format(types.DateTimeFormat)
+
+	_, err := p.conn.Exec(query, createdAtStr, sessionId, responseStatus, response)
+	return err
 }

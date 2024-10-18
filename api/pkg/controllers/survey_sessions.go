@@ -10,6 +10,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/plutov/formulosity/api/pkg/http/response"
+
 	"github.com/plutov/formulosity/api/pkg/surveys"
 	surveyspkg "github.com/plutov/formulosity/api/pkg/surveys"
 	"github.com/plutov/formulosity/api/pkg/types"
@@ -100,6 +101,14 @@ func (h *Handler) submitSurveyAnswer(c echo.Context) error {
 	session, _, err = h.getSurveySession(c)
 	if err != nil {
 		return response.NotFound(c, err.Error())
+	}
+
+	if session.Status == types.SurveySessionStatus_Completed {
+		go func() {
+			if err := surveyspkg.CallWebhook(h.Services, survey, session); err != nil {
+				log.Println("call webhook error:", err)
+			}
+		}()
 	}
 
 	return response.Ok(c, *session)

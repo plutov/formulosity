@@ -1,8 +1,13 @@
 package surveys
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
+	"net/http"
+	"time"
 
 	"github.com/plutov/formulosity/api/pkg/log"
 	"github.com/plutov/formulosity/api/pkg/services"
@@ -104,4 +109,36 @@ func GetSurveySessions(svc services.Services, survey types.Survey, filter *types
 	pagesCount := totalCount / filter.Limit
 
 	return sessions, pagesCount, nil
+}
+
+func CallWebhook(svc services.Services, survey *types.Survey, session *types.SurveySession) error {
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+
+	data, err := json.Marshal(session)
+	if err != nil {
+		return fmt.Errorf("invalid post data, err: %v", err)
+	}
+
+	req, err := http.NewRequest(survey.Config.Webhook.Method, survey.Config.Webhook.URL, bytes.NewBuffer(data))
+	if err != nil {
+		return fmt.Errorf("invalid http request, err: %v", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("error making request, err: %v", err)
+	}
+	defer resp.Body.Close()
+
+	statusCode := resp.StatusCode
+	responseBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		responseBody = []byte{}
+	}
+
+	return svc.Storage.StoreWebhookResponse(int(session.ID), statusCode, string(responseBody))
 }

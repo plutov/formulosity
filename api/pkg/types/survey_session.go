@@ -28,6 +28,12 @@ type SurveySession struct {
 	SurveyUUID      string              `json:"survey_uuid"`
 	IPAddr          string              `json:"ip_addr"`
 	QuestionAnswers []QuestionAnswer    `json:"question_answers"`
+	WebhookData     WebhookData         `json:"webhookData"`
+}
+
+type WebhookData struct {
+	StatusCode int16  `json:"statusCode"`
+	Response   string `json:"response"`
 }
 
 type SurveySessionsFilter struct {
