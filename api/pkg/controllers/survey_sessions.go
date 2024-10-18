@@ -172,3 +172,19 @@ func (h *Handler) getUploadedFile(c echo.Context, req []byte) (*types.File, erro
 	}
 	return uploadedFile, nil
 }
+
+func (h *Handler) downloadFile(c echo.Context) error {
+	fileName := c.Param("file_name")
+	isPresent, path, err := h.Services.FileStorage.IsFileExist(fileName)
+	if err != nil {
+		log.Println("download file error:", err)
+		return errors.New("unable to download file")
+	}
+
+	if !isPresent {
+		log.Println("file does not exist:", err)
+		return errors.New("file not found")
+	}
+
+	return c.Attachment(path, fileName)
+}

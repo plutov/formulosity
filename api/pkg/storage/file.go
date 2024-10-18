@@ -13,65 +13,77 @@ import (
 )
 
 type File struct {
-    uploadDir    string
+	uploadDir string
 }
 
 func (p *File) Init() error {
-    p.uploadDir = os.Getenv("UPLOADS_DIR")
-    if p.uploadDir == "" {
-        p.uploadDir = "./uploads"
-    }
+	p.uploadDir = os.Getenv("UPLOADS_DIR")
+	if p.uploadDir == "" {
+		p.uploadDir = "./uploads"
+	}
 
-    if err := os.MkdirAll(p.uploadDir, os.ModePerm); err != nil {
-        return fmt.Errorf("failed to create upload directory: %v", err)
-    }
+	if err := os.MkdirAll(p.uploadDir, os.ModePerm); err != nil {
+		return fmt.Errorf("failed to create upload directory: %v", err)
+	}
 
-    return nil
+	return nil
 }
 
 func (p *File) SaveFile(file *types.File) (string, error) {
-    sanitizedFilename, err := sanitizeFilename(file.Name)
-    if err != nil {
-        return "", err
-    }
+	sanitizedFilename, err := sanitizeFilename(file.Name)
+	if err != nil {
+		return "", err
+	}
 
-    filename := fmt.Sprintf("%d_%s", time.Now().UnixNano(), sanitizedFilename)
-    fullPath := filepath.Join(p.uploadDir, filename)
+	filename := fmt.Sprintf("%d_%s", time.Now().UnixNano(), sanitizedFilename)
+	fullPath := filepath.Join(p.uploadDir, filename)
 
-    outFile, err := os.Create(fullPath)
-    if err != nil {
-        return "", fmt.Errorf("failed to create file: %v", err)
-    }
-    defer outFile.Close()
+	outFile, err := os.Create(fullPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to create file: %v", err)
+	}
+	defer outFile.Close()
 
-    dataSize, err := io.Copy(outFile, file.Data)
-    if err != nil {
-        os.Remove(fullPath)
-        return "", fmt.Errorf("failed to copy file: %v", err)
-    }
+	dataSize, err := io.Copy(outFile, file.Data)
+	if err != nil {
+		os.Remove(fullPath)
+		return "", fmt.Errorf("failed to copy file: %v", err)
+	}
 
-    if dataSize == 0 {
-        os.Remove(fullPath)
-        return "", fmt.Errorf("file content is empty")
-    }
+	if dataSize == 0 {
+		os.Remove(fullPath)
+		return "", fmt.Errorf("file content is empty")
+	}
 
-    return outFile.Name(), nil
+	return outFile.Name(), nil
 }
 
 func sanitizeFilename(name string) (string, error) {
-    if name == "" {
-        return "", fmt.Errorf("filename is empty")
-    }
+	if name == "" {
+		return "", fmt.Errorf("filename is empty")
+	}
 
-    p := bluemonday.NewPolicy()
+	p := bluemonday.NewPolicy()
 
-    name = filepath.Base(name)
-    sanitized := p.Sanitize(name)
+	name = filepath.Base(name)
+	sanitized := p.Sanitize(name)
 
-    if regexp.MustCompile(`[^\w\-.]`).MatchString(sanitized) {
-        return "", fmt.Errorf("invalid characters in filename")
-    }
-    sanitized = regexp.MustCompile(`[^\w\-.]`).ReplaceAllString(sanitized, "_")
+	if regexp.MustCompile(`[^\w\-.]`).MatchString(sanitized) {
+		return "", fmt.Errorf("invalid characters in filename")
+	}
+	sanitized = regexp.MustCompile(`[^\w\-.]`).ReplaceAllString(sanitized, "_")
 
-    return sanitized, nil
+	return sanitized, nil
+}
+
+func (p *File) IsFileExist(fileName string) (bool, string, error) {
+	fullPath := filepath.Join(p.uploadDir, fileName)
+	_, err := os.Stat(fullPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, "", nil
+		}
+		return false, "", err
+	}
+	return true, fullPath, nil
 }
