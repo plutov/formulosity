@@ -79,7 +79,9 @@ func convertAnswerBytesToAnswerType(survey *types.Survey, answers []types.Questi
 				if err != nil {
 					log.WithError(err).Error("unable to get answer type")
 				} else {
-					json.Unmarshal(a.AnswerBytes, &answerType)
+					if err := json.Unmarshal(a.AnswerBytes, &answerType); err != nil {
+						log.WithError(err).Error("unable to decode answer")
+					}
 					answers[i].Answer = answerType
 				}
 

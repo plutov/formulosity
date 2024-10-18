@@ -16,15 +16,17 @@ func SyncSurveysOnChange(svc services.Services) {
 
 	dir := os.Getenv("SURVEYS_DIR")
 
-	watcher.Add(dir)
+	if err := watcher.Add(dir); err != nil {
+		log.WithError(err).Error("unable to add watcher")
+	}
 
 	done := make(chan bool)
 	go func() {
 		for {
-			select {
-			case event := <-watcher.Events:
-				log.With("event", event).Info("file change event received")
-				SyncSurveys(svc)
+			event := <-watcher.Events
+			log.With("event", event).Info("file change event received")
+			if err := SyncSurveys(svc); err != nil {
+				log.WithError(err).Error("unable to sync surveys on file change")
 			}
 		}
 	}()

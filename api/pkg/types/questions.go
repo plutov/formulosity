@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/plutov/formulosity/api/pkg/log"
 )
 
 type QuestionType string
@@ -55,10 +57,10 @@ type Question struct {
 }
 
 type QuestionValidation struct {
-	Min                 *int                `json:"min,omitempty" yaml:"min,omitempty"`
-	Max                 *int                `json:"max,omitempty" yaml:"max,omitempty"`
-	Formats             *[]string           `json:"formats,omitempty" yaml:"formats,omitempty"`
-	MaxSizeBytes        *string             `json:"max_size_bytes,omitempty" yaml:"max_size_bytes,omitempty"`
+	Min          *int      `json:"min,omitempty" yaml:"min,omitempty"`
+	Max          *int      `json:"max,omitempty" yaml:"max,omitempty"`
+	Formats      *[]string `json:"formats,omitempty" yaml:"formats,omitempty"`
+	MaxSizeBytes *string   `json:"max_size_bytes,omitempty" yaml:"max_size_bytes,omitempty"`
 }
 
 func (s *Questions) Validate() error {
@@ -135,7 +137,9 @@ func (v QuestionValidation) ValidateFile() error {
 
 func (q Question) GenerateHash() string {
 	var b bytes.Buffer
-	gob.NewEncoder(&b).Encode(q)
+	if err := gob.NewEncoder(&b).Encode(q); err != nil {
+		log.WithError(err).Error("unable to generate question has")
+	}
 
 	h := sha256.New()
 	h.Write(b.Bytes())
@@ -226,7 +230,6 @@ func (q Question) GetAnswerType() (Answer, error) {
 func (q Question) ValidateAnswer(answer interface{}) error {
 	return nil
 }
-
 
 func GetStringMultiplication(expression string) (int64, error) {
 	parts := strings.Split(expression, "*")

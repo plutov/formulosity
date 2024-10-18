@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 )
+
 func ptrString(s string) *string {
 	return &s
 }

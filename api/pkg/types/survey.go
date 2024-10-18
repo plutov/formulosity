@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/microcosm-cc/bluemonday"
+	"github.com/plutov/formulosity/api/pkg/log"
 )
 
 const (
@@ -192,7 +193,9 @@ func (s *SurveyConfig) Normalize() {
 
 func (s *SurveyConfig) GenerateHash() {
 	var b bytes.Buffer
-	gob.NewEncoder(&b).Encode(*s)
+	if err := gob.NewEncoder(&b).Encode(*s); err != nil {
+		log.WithError(err).Error("unable to generate question has")
+	}
 
 	h := sha256.New()
 	h.Write(b.Bytes())

@@ -8,8 +8,8 @@ import (
 )
 
 type Services struct {
-	Storage       storage.Interface
-	FileStorage   storage.FileInterface
+	Storage     storage.Interface
+	FileStorage storage.FileInterface
 }
 
 func InitServices() (Services, error) {
