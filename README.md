@@ -305,6 +305,24 @@ You can deploy individual services to any cloud provider or self host them.
 
 The demo service (links above) is deployed to Fly.io (Go, SQLite) and Vercel (Next.js) and are under the free tiers.
 
+### Backend Development setup
+
+Run the following command for setting up backend for development purpose
+
+```
+make run
+```
+
+Or if air is locally installed
+
+```
+cd api
+air
+```
+
+This command will help in live reloading whenever changes are done in the APIs using `air`. 
+Custom configurations can be set by modifying `air.toml` file
+
 ### Environment Variables
 
 API:
