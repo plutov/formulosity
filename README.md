@@ -253,6 +253,7 @@ Presents a question where users can only answer "yes" or "no".
 ### Email
 
 Prompts user to enter their email
+
 ```yaml
 - type: email
   label: Please enter your email.
@@ -261,14 +262,15 @@ Prompts user to enter their email
 ### File
 
 Prompts user to upload their file based on a given formats and maximum upload size.
+
 ```yaml
-  - type: file
-    label: Upload a Berlin Image
-    validation:
-      formats: 
-        - .jpg
-        - .png
-      max_size_bytes: 5*1024*1024 # 5 MB
+- type: file
+  label: Upload a Berlin Image
+  validation:
+    formats:
+      - .jpg
+      - .png
+    max_size_bytes: 5*1024*1024 # 5 MB
 ```
 
 ## Responses
@@ -307,20 +309,16 @@ The demo service (links above) is deployed to Fly.io (Go, SQLite) and Vercel (Ne
 
 ### Backend Development setup
 
-Run the following command for setting up backend for development purpose
+Install AIR locally from [here](https://github.com/air-verse/air)
 
-```
-make run
-```
-
-Or if air is locally installed
+Run the following command after AIR installation
 
 ```
 cd api
 air
 ```
 
-This command will help in live reloading whenever changes are done in the APIs using `air`. 
+This command will help in live reloading whenever changes are done in the APIs using `air`.
 Custom configurations can be set by modifying `air.toml` file
 
 ### Environment Variables

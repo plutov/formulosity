@@ -13,4 +13,3 @@ ui/yarn-error.log*
 .DS_Store
 .env
 tmp/
-bin/
