@@ -1,3 +1,4 @@
+
 lint:
 	golangci-lint run
 
