@@ -12,7 +12,6 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/stretchr/testify v1.9.0
-	go.uber.org/zap v1.26.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -35,7 +34,6 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
-	go.uber.org/multierr v1.10.0 // indirect
 	golang.org/x/crypto v0.27.0 // indirect
 	golang.org/x/net v0.29.0 // indirect
 	golang.org/x/sys v0.25.0 // indirect
