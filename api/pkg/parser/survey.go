@@ -6,7 +6,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/plutov/formulosity/api/pkg/log"
 	"github.com/plutov/formulosity/api/pkg/types"
 	yaml "gopkg.in/yaml.v3"
 )
@@ -56,7 +55,7 @@ var surveyFiles = []surveyFile{
 }
 
 func (p *Parser) ReadSurvey(path string) (*types.SurveyConfig, error) {
-	logCtx := log.With("path", path)
+	logCtx := p.svc.Logger.With("path", path)
 	logCtx.Info("reading survey folder")
 
 	if path == "" {
@@ -69,7 +68,7 @@ func (p *Parser) ReadSurvey(path string) (*types.SurveyConfig, error) {
 
 	items, err := os.ReadDir(path)
 	if err != nil {
-		logCtx.WithError(err).Error("unable to read survey dir")
+		logCtx.Error("unable to read survey dir", "err", err)
 		return nil, errors.New("unable to read survey folder")
 	}
 
@@ -114,7 +113,7 @@ func (p *Parser) ReadSurvey(path string) (*types.SurveyConfig, error) {
 		if found {
 			file, err := os.ReadFile(path + string(surveyFile.Name))
 			if err != nil {
-				logCtx.WithError(err).With("file", surveyFile.Name).Error("unable to read survey file")
+				logCtx.With("file", surveyFile.Name).Error("unable to read survey file", "err", err)
 				return nil, fmt.Errorf("unable to read survey file '%s'", surveyFile.Name)
 			}
 

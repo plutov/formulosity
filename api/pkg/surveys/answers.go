@@ -4,14 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/plutov/formulosity/api/pkg/log"
 	"github.com/plutov/formulosity/api/pkg/services"
 	"github.com/plutov/formulosity/api/pkg/types"
 )
 
 // returns 2 errors: general and error details
 func SubmitAnswer(svc services.Services, session *types.SurveySession, survey *types.Survey, question *types.Question, req []byte, file *types.File) (error, error) {
-	logCtx := log.With("session_uuid", session.UUID)
+	logCtx := svc.Logger.With("session_uuid", session.UUID)
 	logCtx.Info("submitting answer")
 
 	answer, err := question.GetAnswerType()
@@ -49,7 +48,7 @@ func SubmitAnswer(svc services.Services, session *types.SurveySession, survey *t
 
 	if err := svc.Storage.UpsertSurveyQuestionAnswer(session.UUID, question.UUID, answer); err != nil {
 		msg := "unable to insert answer"
-		logCtx.WithError(err).Error(msg)
+		logCtx.Error(msg, "err", err)
 		return errors.New(msg), nil
 	}
 
@@ -62,7 +61,7 @@ func SubmitAnswer(svc services.Services, session *types.SurveySession, survey *t
 		session.Status = types.SurveySessionStatus_Completed
 		if err := svc.Storage.UpdateSurveySessionStatus(session.UUID, session.Status); err != nil {
 			msg := "unable to update session status"
-			logCtx.WithError(err).Error(msg)
+			logCtx.Error(msg, "err", err)
 			return nil, errors.New(msg)
 		}
 

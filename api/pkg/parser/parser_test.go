@@ -1,14 +1,20 @@
 package parser
 
 import (
+	"log/slog"
+	"os"
 	"testing"
 
+	"github.com/plutov/formulosity/api/pkg/services"
 	"github.com/plutov/formulosity/api/pkg/types"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestReadSurveys(t *testing.T) {
-	p := NewParser()
+	svc := services.Services{
+		Logger: slog.New(slog.NewJSONHandler(os.Stdout, nil)),
+	}
+	p := NewParser(svc)
 
 	result, err := p.ReadSurveys("./../../surveys")
 	if err != nil {

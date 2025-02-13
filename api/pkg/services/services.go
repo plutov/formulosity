@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 
 	"github.com/plutov/formulosity/api/pkg/storage"
@@ -10,10 +11,13 @@ import (
 type Services struct {
 	Storage     storage.Interface
 	FileStorage storage.FileInterface
+	Logger      *slog.Logger
 }
 
 func InitServices() (Services, error) {
-	svc := Services{}
+	svc := Services{
+		Logger: slog.New(slog.NewJSONHandler(os.Stdout, nil)),
+	}
 	switch os.Getenv("DATABASE_TYPE") {
 	case "postgres":
 		svc.Storage = new(storage.Postgres)

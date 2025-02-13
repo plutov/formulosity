@@ -3,7 +3,6 @@ package surveys
 import (
 	"fmt"
 
-	"github.com/plutov/formulosity/api/pkg/log"
 	"github.com/plutov/formulosity/api/pkg/services"
 	"github.com/plutov/formulosity/api/pkg/types"
 )
@@ -12,7 +11,7 @@ import (
 // 1. When it's a new survey - create it
 // 2. When it's an existing survey - update it
 func PersistSurveysSyncResult(svc services.Services, syncResult *types.SurveysSyncResult) error {
-	logCtx := log.With("func", "PersistSurveysSyncResult")
+	logCtx := svc.Logger.With("func", "PersistSurveysSyncResult")
 	logCtx.Info("persisting surveys")
 
 	if syncResult == nil {
@@ -21,7 +20,7 @@ func PersistSurveysSyncResult(svc services.Services, syncResult *types.SurveysSy
 
 	currSurveys, err := svc.Storage.GetSurveys()
 	if err != nil {
-		logCtx.WithError(err).Error("unable to get current surveys")
+		logCtx.Error("unable to get current surveys", "err", err)
 		return fmt.Errorf("unable to get current surveys: %w", err)
 	}
 

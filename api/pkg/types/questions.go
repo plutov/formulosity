@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-
-	"github.com/plutov/formulosity/api/pkg/log"
 )
 
 type QuestionType string
@@ -138,7 +136,7 @@ func (v QuestionValidation) ValidateFile() error {
 func (q Question) GenerateHash() string {
 	var b bytes.Buffer
 	if err := gob.NewEncoder(&b).Encode(q); err != nil {
-		log.WithError(err).Error("unable to generate question has")
+		return ""
 	}
 
 	h := sha256.New()

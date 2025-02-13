@@ -1,10 +1,6 @@
-<p align="center" width="100%">
-	<img src="https://github.com/plutov/formulosity/blob/main/ui/public/logo_wide.png" height="100px">
-</p>
+<img src="https://github.com/plutov/formulosity/blob/main/ui/public/logo_wide.png" height="100px">
 
-<p align="center">
-Formulosity is a self-hosted app for building and deploying the surveys using code instead of traditional survey builders.
-</p>
+## Formulosity - self-hosted Surveys as Code platform.
 
 This approach offers a number of advantages, including:
 
@@ -14,9 +10,7 @@ This approach offers a number of advantages, including:
 
 **Formulosity** uses human-readable declarative language [YAML](https://en.wikipedia.org/wiki/YAML).
 
-<p align="center" width="100%">
-	<img src="https://github.com/plutov/formulosity/blob/main/ui/public/questions.png" height="250px">
-</p>
+<img src="https://github.com/plutov/formulosity/blob/main/ui/public/questions.png" height="250px">
 
 ## Features
 
@@ -38,13 +32,9 @@ This approach offers a number of advantages, including:
 - [ ] Advanced question types
 - [ ] Pipe answers into the following questions
 
-## See it in Action!
+## Demo
 
-<p align="center" width="100%">
-	<a href="https://formulosity.vercel.app/app">Admin Panel</a>
-</p>
-
-Note: use `user` / `pass` to login into the Console UI.
+[Demo admin panel](https://formulosity.vercel.app/app). Credentials: `user` / `pass`
 
 ## Survey Structure
 
@@ -64,7 +54,7 @@ surveys/
     └── ...
 ```
 
-To get started, check out the `./surveys` folder with multiple examples.
+To get started, check out the `./api/surveys` folder with multiple examples.
 
 ## Survey Files
 
@@ -297,7 +287,7 @@ Where `{SURVEY_ID}` id the UUID of a given survey.
 docker-compose up -d --build
 ```
 
-And you should be able to access the UI on http://localhost:3000 (default basic auth: `user:pass`).
+And you should be able to access the UI on [localhost:3000](http://localhost:3000) (default basic auth: `user:pass`).
 
 You can deploy individual services to any cloud provider or self host them.
 
@@ -307,28 +297,14 @@ You can deploy individual services to any cloud provider or self host them.
 
 The demo service (links above) is deployed to Fly.io (Go, SQLite) and Vercel (Next.js) and are under the free tiers.
 
-### Backend Development setup
-
-Install AIR locally from [here](https://github.com/air-verse/air)
-
-Run the following command after AIR installation
-
-```
-cd api
-air
-```
-
-This command will help in live reloading whenever changes are done in the APIs using `air`.
-Custom configurations can be set by modifying `air.toml` file
-
 ### Environment Variables
 
 API:
 
 - `DATABASE_TYPE` - `sqlite` or `postgres`
 - `DATABASE_URL` - Postgres or SQLite connection string
-- `LOG_LEVEL` - Log level, e.g. `info`
 - `SURVEYS_DIR` - Directory with surveys, e.g. `/root/surveys`. It's suggested to use mounted volume for this directory.
+- `UPLOADS_DIR` - Directory for uploading files from the survey forms.
 
 UI:
 

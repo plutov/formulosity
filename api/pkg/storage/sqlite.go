@@ -15,7 +15,6 @@ import (
 	migratepg "github.com/golang-migrate/migrate/v4/database/sqlite3"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/google/uuid"
-	"github.com/plutov/formulosity/api/pkg/log"
 	"github.com/plutov/formulosity/api/pkg/types"
 )
 
@@ -136,7 +135,7 @@ func (p *Sqlite) GetSurveys() ([]*types.Survey, error) {
 
 		survey.CreatedAt, _ = time.Parse(types.DateTimeFormat, createdAtStr.String)
 		if err := json.Unmarshal([]byte(configStr.String), &survey.Config); err != nil {
-			log.WithError(err).Error("unable to decode config")
+			return nil, err
 		}
 
 		totalResponses := survey.Stats.SessionsCountInProgess + survey.Stats.SessionsCountCompleted
@@ -178,7 +177,7 @@ func (p *Sqlite) GetSurveyByField(field string, value interface{}) (*types.Surve
 
 	survey.CreatedAt, _ = time.Parse(types.DateTimeFormat, createdAtStr.String)
 	if err := json.Unmarshal([]byte(configStr.String), &survey.Config); err != nil {
-		log.WithError(err).Error("unable to decode survey config")
+		return nil, err
 	}
 
 	return survey, nil

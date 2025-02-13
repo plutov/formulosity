@@ -5,13 +5,18 @@ import (
 	"os"
 	"sort"
 
+	"github.com/plutov/formulosity/api/pkg/services"
 	"github.com/plutov/formulosity/api/pkg/types"
 )
 
-type Parser struct{}
+type Parser struct {
+	svc services.Services
+}
 
-func NewParser() *Parser {
-	return &Parser{}
+func NewParser(svc services.Services) *Parser {
+	return &Parser{
+		svc: svc,
+	}
 }
 
 func (p *Parser) ReadSurveys(path string) (*types.SurveysSyncResult, error) {

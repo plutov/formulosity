@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/plutov/formulosity/api/pkg/log"
 	"github.com/plutov/formulosity/api/pkg/services"
 	"github.com/plutov/formulosity/api/pkg/types"
 )
@@ -21,7 +20,7 @@ func CreateSurveySession(svc services.Services, survey *types.Survey, ipAddr str
 		IPAddr:     ipAddr,
 	}
 
-	logCtx := log.With("session", *session)
+	logCtx := svc.Logger.With("session", *session)
 	logCtx.Info("creating survey session")
 
 	if ipAddr != "" && survey.Config.Security.DuplicateProtection == types.DuplicateProtectionType_Ip {
@@ -34,7 +33,7 @@ func CreateSurveySession(svc services.Services, survey *types.Survey, ipAddr str
 
 	if err := svc.Storage.CreateSurveySession(session); err != nil {
 		msg := "unable to create survey session"
-		logCtx.WithError(err).Error(msg)
+		logCtx.Error(msg, "err", err)
 		return nil, errors.New(msg)
 	}
 
@@ -44,13 +43,13 @@ func CreateSurveySession(svc services.Services, survey *types.Survey, ipAddr str
 }
 
 func GetSurveySession(svc services.Services, survey types.Survey, sessionUUID string) (*types.SurveySession, error) {
-	logCtx := log.With("survey_uuid", survey.UUID, "session_uuid", sessionUUID)
+	logCtx := svc.Logger.With("survey_uuid", survey.UUID, "session_uuid", sessionUUID)
 	logCtx.Info("getting survey session")
 
 	session, err := svc.Storage.GetSurveySession(survey.UUID, sessionUUID)
 	if err != nil {
 		msg := "session not found"
-		logCtx.WithError(err).Error(msg)
+		logCtx.Error(msg, "err", err)
 		return nil, errors.New(msg)
 	}
 
@@ -61,26 +60,26 @@ func GetSurveySession(svc services.Services, survey types.Survey, sessionUUID st
 	answers, err := svc.Storage.GetSurveySessionAnswers(session.UUID)
 	if err != nil {
 		msg := "unable to get session answers"
-		logCtx.WithError(err).Error(msg)
+		logCtx.Error(msg, "err", err)
 	}
 
 	session.QuestionAnswers = answers
 
-	session.QuestionAnswers = convertAnswerBytesToAnswerType(&survey, session.QuestionAnswers)
+	session.QuestionAnswers = convertAnswerBytesToAnswerType(svc, &survey, session.QuestionAnswers)
 
 	return session, nil
 }
 
-func convertAnswerBytesToAnswerType(survey *types.Survey, answers []types.QuestionAnswer) []types.QuestionAnswer {
+func convertAnswerBytesToAnswerType(svc services.Services, survey *types.Survey, answers []types.QuestionAnswer) []types.QuestionAnswer {
 	for i, a := range answers {
 		for _, q := range survey.Config.Questions.Questions {
 			if q.UUID == a.QuestionUUID {
 				answerType, err := q.GetAnswerType()
 				if err != nil {
-					log.WithError(err).Error("unable to get answer type")
+					svc.Logger.Error("unable to get answer type", "err", err)
 				} else {
 					if err := json.Unmarshal(a.AnswerBytes, &answerType); err != nil {
-						log.WithError(err).Error("unable to decode answer")
+						svc.Logger.Error("unable to decode answer", "err", err)
 					}
 					answers[i].Answer = answerType
 				}
@@ -94,18 +93,18 @@ func convertAnswerBytesToAnswerType(survey *types.Survey, answers []types.Questi
 }
 
 func GetSurveySessions(svc services.Services, survey types.Survey, filter *types.SurveySessionsFilter) ([]types.SurveySession, int, error) {
-	logCtx := log.With("survey_uuid", survey.UUID)
+	logCtx := svc.Logger.With("survey_uuid", survey.UUID)
 	logCtx.Info("getting survey sessions")
 
 	sessions, totalCount, err := svc.Storage.GetSurveySessionsWithAnswers(survey.UUID, filter)
 	if err != nil {
 		msg := "unable to get survey sessions"
-		logCtx.WithError(err).Error(msg)
+		logCtx.Error(msg, "err", err)
 		return nil, 0, errors.New(msg)
 	}
 
 	for i, s := range sessions {
-		sessions[i].QuestionAnswers = convertAnswerBytesToAnswerType(&survey, s.QuestionAnswers)
+		sessions[i].QuestionAnswers = convertAnswerBytesToAnswerType(svc, &survey, s.QuestionAnswers)
 	}
 
 	pagesCount := totalCount / filter.Limit

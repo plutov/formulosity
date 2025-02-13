@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	gonanoid "github.com/matoous/go-nanoid/v2"
-	"github.com/plutov/formulosity/api/pkg/log"
 	"github.com/plutov/formulosity/api/pkg/services"
 	"github.com/plutov/formulosity/api/pkg/types"
 )
@@ -12,26 +11,26 @@ import (
 const URL_SLUG_LENGTH = 12
 
 func CreateSurvey(svc services.Services, survey *types.Survey) error {
-	logCtx := log.With("survey", *survey)
+	logCtx := svc.Logger.With("survey", *survey)
 	logCtx.Info("creating survey")
 
 	var err error
 	survey.URLSlug, err = gonanoid.Generate("abcdefghijklmnopqrstuvwxyz1234567890", URL_SLUG_LENGTH)
 	if err != nil {
 		msg := "unable to generate url_slug"
-		logCtx.WithError(err).Error(msg)
+		logCtx.Error(msg, "err", err)
 		return errors.New(msg)
 	}
 
 	if err := svc.Storage.CreateSurvey(survey); err != nil {
 		msg := "unable to create survey"
-		logCtx.WithError(err).Error(msg)
+		logCtx.Error(msg, "err", err)
 		return errors.New(msg)
 	}
 
 	if err := svc.Storage.UpsertSurveyQuestions(survey); err != nil {
 		msg := "unable to upsert survey questions"
-		logCtx.WithError(err).Error(msg)
+		logCtx.Error(msg, "err", err)
 		return errors.New(msg)
 	}
 
@@ -41,18 +40,18 @@ func CreateSurvey(svc services.Services, survey *types.Survey) error {
 }
 
 func UpdateSurvey(svc services.Services, survey *types.Survey) error {
-	logCtx := log.With("survey_uuid", survey.UUID)
+	logCtx := svc.Logger.With("survey_uuid", survey.UUID)
 	logCtx.Info("updating survey")
 
 	if err := svc.Storage.UpdateSurvey(survey); err != nil {
 		msg := "unable to update survey"
-		logCtx.WithError(err).Error(msg)
+		logCtx.Error(msg, "err", err)
 		return errors.New(msg)
 	}
 
 	if err := svc.Storage.UpsertSurveyQuestions(survey); err != nil {
 		msg := "unable to upsert survey questions"
-		logCtx.WithError(err).Error(msg)
+		logCtx.Error(msg, "err", err)
 		return errors.New(msg)
 	}
 
@@ -79,12 +78,12 @@ func GetSurveyByUUID(svc services.Services, uuid string) (*types.Survey, error) 
 }
 
 func getSurveyByField(svc services.Services, field string, value string) (*types.Survey, error) {
-	logCtx := log.With(field, value)
+	logCtx := svc.Logger.With(field, value)
 	logCtx.Info("getting survey")
 
 	survey, err := svc.Storage.GetSurveyByField(field, value)
 	if err != nil {
-		logCtx.WithError(err).Error("unable to get survey")
+		logCtx.Error("unable to get survey", "err", err)
 		return nil, errors.New("survey not found")
 	}
 
@@ -96,7 +95,7 @@ func getSurveyByField(svc services.Services, field string, value string) (*types
 	questionsDB, err := svc.Storage.GetSurveyQuestions(survey.ID)
 	if err != nil {
 		msg := "survey questions not found"
-		logCtx.WithError(err).Error(msg)
+		logCtx.Error(msg, "err", err)
 		return nil, errors.New(msg)
 	}
 

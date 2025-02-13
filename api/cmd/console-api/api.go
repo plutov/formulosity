@@ -4,36 +4,31 @@ import (
 	"os"
 
 	controllers "github.com/plutov/formulosity/api/pkg/controllers"
-	"github.com/plutov/formulosity/api/pkg/log"
 	"github.com/plutov/formulosity/api/pkg/services"
 	"github.com/plutov/formulosity/api/pkg/surveys"
 )
 
 func main() {
-	log.Named("console-api")
-	logLevel := "info"
-	if os.Getenv("LOG_LEVEL") != "" {
-		logLevel = os.Getenv("LOG_LEVEL")
-	}
-	log.SetLogLevel(logLevel)
-
 	svc, err := services.InitServices()
 	if err != nil {
-		log.WithError(err).Fatal("unable to init dependencies")
+		svc.Logger.Error("unable to init dependencies", "err", err)
+		os.Exit(1)
 	}
 
 	if err := surveys.SyncSurveys(svc); err != nil {
-		log.WithError(err).Fatal("unable to sync surveys")
+		svc.Logger.Error("unable to sync surveys", "err", err)
+		os.Exit(1)
 	}
 
 	handler := controllers.NewHandler(svc)
 	if err != nil {
-		log.WithError(err).Fatal("unable to start server")
+		svc.Logger.Error("unable to start server", "err", err)
+		os.Exit(1)
 	}
 
 	r := controllers.NewRouter(handler)
 
 	if err := r.Start(":8080"); err != nil {
-		log.WithError(err).Fatal("shutting down the server")
+		svc.Logger.Info("shutting down the server", "err", err)
 	}
 }

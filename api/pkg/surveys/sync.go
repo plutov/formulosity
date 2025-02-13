@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/fsnotify/fsnotify"
-	"github.com/plutov/formulosity/api/pkg/log"
 	"github.com/plutov/formulosity/api/pkg/parser"
 	"github.com/plutov/formulosity/api/pkg/services"
 )
@@ -17,16 +16,16 @@ func SyncSurveysOnChange(svc services.Services) {
 	dir := os.Getenv("SURVEYS_DIR")
 
 	if err := watcher.Add(dir); err != nil {
-		log.WithError(err).Error("unable to add watcher")
+		svc.Logger.Error("unable to add watcher", "err", err)
 	}
 
 	done := make(chan bool)
 	go func() {
 		for {
 			event := <-watcher.Events
-			log.With("event", event).Info("file change event received")
+			svc.Logger.With("event", event).Info("file change event received")
 			if err := SyncSurveys(svc); err != nil {
-				log.WithError(err).Error("unable to sync surveys on file change")
+				svc.Logger.Error("unable to sync surveys on file change", "err", err)
 			}
 		}
 	}()
@@ -35,13 +34,13 @@ func SyncSurveysOnChange(svc services.Services) {
 }
 
 func SyncSurveys(svc services.Services) error {
-	logCtx := log.With("func", "SyncSurveys")
+	logCtx := svc.Logger.With("func", "SyncSurveys")
 	logCtx.Info("started surveys sync")
 
-	parser := parser.NewParser()
+	parser := parser.NewParser(svc)
 	syncResult, err := parser.ReadSurveys(os.Getenv("SURVEYS_DIR"))
 	if err != nil {
-		logCtx.WithError(err).Error("unable to read surveys dir")
+		logCtx.Error("unable to read surveys dir", "err", err)
 		return fmt.Errorf("unable to read surveys dir %w", err)
 	}
 
@@ -50,7 +49,7 @@ func SyncSurveys(svc services.Services) error {
 
 	err = PersistSurveysSyncResult(svc, syncResult)
 	if err != nil {
-		logCtx.WithError(err).Error("unable to persist sync result")
+		logCtx.Error("unable to persist sync result", "err", err)
 		return fmt.Errorf("unable to persist sync result %w", err)
 	}
 

@@ -7,7 +7,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/plutov/formulosity/api/pkg/http/response"
-	"github.com/plutov/formulosity/api/pkg/log"
 	surveyspkg "github.com/plutov/formulosity/api/pkg/surveys"
 	"github.com/plutov/formulosity/api/pkg/types"
 )
@@ -61,7 +60,7 @@ type updateSurveyReq struct {
 func (h *Handler) getSurveys(c echo.Context) error {
 	surveys, err := h.Storage.GetSurveys()
 	if err != nil {
-		log.WithError(err).Error("failed to get surveys")
+		h.Services.Logger.Error("failed to get surveys", "err", err)
 		return response.InternalErrorDefaultMsg(c)
 	}
 

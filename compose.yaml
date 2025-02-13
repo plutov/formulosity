@@ -8,7 +8,6 @@ services:
     # depends_on:
     # - postgres
     environment:
-      - LOG_LEVEL=debug
       - DATABASE_TYPE=sqlite # postgres|sqlite
       # - DATABASE_URL=postgres://postgres:postgres@postgres:5432/formulosity?sslmode=disable
       - DATABASE_URL=/root/sqlite3/formulosity.db
