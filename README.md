@@ -32,10 +32,6 @@ This approach offers a number of advantages, including:
 - [ ] Advanced question types
 - [ ] Pipe answers into the following questions
 
-## Demo
-
-[Demo admin panel](https://formulosity.vercel.app/app). Credentials: `user` / `pass`
-
 ## Survey Structure
 
 Each directory in `SURVEYS_DIR` is a survey. You can configure the source of your surveys by setting different `SURVEYS_DIR` env var.
@@ -294,8 +290,6 @@ You can deploy individual services to any cloud provider or self host them.
 - Go backend. It's packaged as a Docker container and can be deployed anywhere.
 - Next.js frontend. It's also packaged as a Docker container, but also can be deployed to Vercel for example.
 - [Optional] Postgres database. You can use managed Postgres services or deploy it yourself.
-
-The demo service (links above) is deployed to Fly.io (Go, SQLite) and Vercel (Next.js) and are under the free tiers.
 
 ### Environment Variables
 
