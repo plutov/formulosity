@@ -50,3 +50,39 @@ func (q *Queries) CreateSurvey(ctx context.Context, arg CreateSurveyParams) (Sur
 	)
 	return i, err
 }
+
+const getSurveys = `-- name: GetSurveys :many
+SELECT id, uuid, created_at, parse_status, delivery_status, error_log, name, url_slug, config
+FROM surveys
+ORDER BY id DESC
+`
+
+func (q *Queries) GetSurveys(ctx context.Context) ([]Survey, error) {
+	rows, err := q.db.Query(ctx, getSurveys)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Survey
+	for rows.Next() {
+		var i Survey
+		if err := rows.Scan(
+			&i.ID,
+			&i.Uuid,
+			&i.CreatedAt,
+			&i.ParseStatus,
+			&i.DeliveryStatus,
+			&i.ErrorLog,
+			&i.Name,
+			&i.UrlSlug,
+			&i.Config,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
