@@ -8,9 +8,9 @@ services:
     depends_on:
       - postgres
     environment:
-      - DATABASE_TYPE=postgres # postgres|sqlite
-      - DATABASE_URL=postgres://user:pass@postgres:5432/formulosity?sslmode=disable
-      # - DATABASE_URL=/root/sqlite3/formulosity.db
+      - DATABASE_TYPE=sqlite # postgres|sqlite
+      # - DATABASE_URL=postgres://user:pass@postgres:5432/formulosity?sslmode=disable
+      - DATABASE_URL=/root/sqlite3/formulosity.db
       - SURVEYS_DIR=/root/surveys
       - UPLOADS_DIR=/root/uploads
     volumes:
@@ -41,8 +41,3 @@ services:
       - "5432:5432"
     volumes:
       - ./api/postgres-data:/var/lib/postgresql/data
-    logging:
-      driver: none
-volumes:
-  dbvolume:
-    driver: local

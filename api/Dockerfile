@@ -1,4 +1,4 @@
-FROM golang:1.23-alpine AS builder
+FROM golang:1.24-alpine AS builder
 
 RUN apk add build-base
 
@@ -13,7 +13,7 @@ COPY ./cmd ./cmd
 COPY ./pkg ./pkg
 COPY ./migrations ./migrations
 COPY ./surveys ./surveys-examples
-RUN CGO_ENABLED=1 GOOS=linux go build -o api -tags enablecgo cmd/console-api/api.go
+RUN CGO_ENABLED=1 GOOS=linux go build -o api -tags enablecgo cmd/api/api.go
 
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates tzdata bash

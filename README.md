@@ -14,7 +14,7 @@ This approach offers a number of advantages, including:
 
 ## Features
 
-- [x] Management API
+- [x] API first
 - [x] Survey UI: for end users (respondents)
 - [x] Console UI: manage surveys
 - [x] YAML survey configuration
@@ -27,7 +27,6 @@ This approach offers a number of advantages, including:
 - [x] Different database options: SQLite and Postgres
 - [x] Continue where you left off
 - [x] Advanced validation rules
-- [x] Detect survey changes in real time
 - [x] Export responses in UI or via API
 - [ ] Advanced question types
 - [ ] Pipe answers into the following questions

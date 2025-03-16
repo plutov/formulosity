@@ -21,12 +21,12 @@ func NewRouter(h *Handler) *echo.Echo {
 	e.GET("/app/surveys/:survey_uuid/sessions", h.surveyUUIDMiddleware(h.getSurveySessions))
 	e.GET("/app/surveys/:survey_uuid/download/:file_name", h.surveyUUIDMiddleware(h.downloadFile))
 
-	surveysGroup := e.Group("/surveys")
-	surveysGroup.GET("/:url_slug", h.getSurvey)
-	surveysGroup.GET("/:url_slug/css", h.getSurveyCSS)
-	surveysGroup.PUT("/:url_slug/sessions", h.createSurveySession)
-	surveysGroup.GET("/:url_slug/sessions/:session_uuid", h.getSurveySessionHandler)
-	surveysGroup.POST("/:url_slug/sessions/:session_uuid/questions/:question_uuid/answers", h.submitSurveyAnswer)
+	surveys := e.Group("/surveys")
+	surveys.GET("/:url_slug", h.getSurvey)
+	surveys.GET("/:url_slug/css", h.getSurveyCSS)
+	surveys.PUT("/:url_slug/sessions", h.createSurveySession)
+	surveys.GET("/:url_slug/sessions/:session_uuid", h.getSurveySessionHandler)
+	surveys.POST("/:url_slug/sessions/:session_uuid/questions/:question_uuid/answers", h.submitSurveyAnswer)
 
 	return e
 }
