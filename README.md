@@ -10,8 +10,6 @@ This approach offers a number of advantages, including:
 
 **Formulosity** uses human-readable declarative language [YAML](https://en.wikipedia.org/wiki/YAML).
 
-<img src="https://github.com/plutov/formulosity/blob/main/ui/public/questions.png" height="250px">
-
 ## Features
 
 - [x] API first

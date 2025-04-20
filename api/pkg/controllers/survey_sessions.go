@@ -3,15 +3,14 @@ package controllers
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
-	"log"
 	"path/filepath"
 	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/plutov/formulosity/api/pkg/http/response"
 
-	"github.com/plutov/formulosity/api/pkg/surveys"
 	surveyspkg "github.com/plutov/formulosity/api/pkg/surveys"
 	"github.com/plutov/formulosity/api/pkg/types"
 )
@@ -23,7 +22,7 @@ func (h *Handler) createSurveySession(c echo.Context) error {
 	}
 
 	ipAddr := c.RealIP()
-	session, err := surveys.CreateSurveySession(h.Services, survey, ipAddr)
+	session, err := surveyspkg.CreateSurveySession(h.Services, survey, ipAddr)
 	if err != nil {
 		return response.Forbidden(c, err.Error())
 	}
@@ -51,7 +50,7 @@ func (h *Handler) getSurveySession(c echo.Context) (*types.SurveySession, *types
 		return nil, nil, err
 	}
 
-	session, err := surveys.GetSurveySession(h.Services, *survey, sessionUUID)
+	session, err := surveyspkg.GetSurveySession(h.Services, *survey, sessionUUID)
 	if err != nil {
 		return nil, nil, errors.New("session not found")
 	}
@@ -89,7 +88,7 @@ func (h *Handler) submitSurveyAnswer(c echo.Context) error {
 		return response.BadRequest(c, err.Error())
 	}
 
-	mainErr, detailsErr := surveys.SubmitAnswer(h.Services, session, survey, question, req, file)
+	mainErr, detailsErr := surveyspkg.SubmitAnswer(h.Services, session, survey, question, req, file)
 	if mainErr != nil {
 		if detailsErr != nil {
 			return response.BadRequestWithDetails(c, mainErr.Error(), detailsErr.Error())
@@ -106,7 +105,7 @@ func (h *Handler) submitSurveyAnswer(c echo.Context) error {
 	if session.Status == types.SurveySessionStatus_Completed {
 		go func() {
 			if err := surveyspkg.CallWebhook(h.Services, survey, session); err != nil {
-				log.Println("call webhook error:", err)
+				h.Logger.Error("call webhook error", "err", err)
 			}
 		}()
 	}
@@ -150,7 +149,6 @@ func (h *Handler) getUploadedFile(c echo.Context, req []byte) (*types.File, erro
 
 		err := c.Request().ParseMultipartForm(10 << 20) // 10MB limit
 		if err != nil {
-			log.Println("ParseMultipartForm error:", err)
 			return nil, errors.New("unable to parse form data")
 		}
 
@@ -161,7 +159,11 @@ func (h *Handler) getUploadedFile(c echo.Context, req []byte) (*types.File, erro
 		fileName := header.Filename
 		fileExt := strings.ToLower(filepath.Ext(fileName))
 
-		defer file.Close()
+		defer func() {
+			if err := file.Close(); err != nil {
+				h.Logger.Error("unable to close file", "err", err)
+			}
+		}()
 
 		uploadedFile = &types.File{
 			Name:   header.Filename,
@@ -175,15 +177,13 @@ func (h *Handler) getUploadedFile(c echo.Context, req []byte) (*types.File, erro
 
 func (h *Handler) downloadFile(c echo.Context) error {
 	fileName := c.Param("file_name")
-	isPresent, path, err := h.Services.FileStorage.IsFileExist(fileName)
+	isPresent, path, err := h.FileStorage.IsFileExist(fileName)
 	if err != nil {
-		log.Println("download file error:", err)
-		return errors.New("unable to download file")
+		return err
 	}
 
 	if !isPresent {
-		log.Println("file does not exist:", err)
-		return errors.New("file not found")
+		return fmt.Errorf("file not found: %s", fileName)
 	}
 
 	return c.Attachment(path, fileName)

@@ -31,7 +31,9 @@ func InitServices() (Services, error) {
 		return svc, fmt.Errorf("unable to init db %w", err)
 	}
 
-	svc.FileStorage = new(storage.File)
+	svc.FileStorage = &storage.File{
+		Logger: svc.Logger,
+	}
 	if err := svc.FileStorage.Init(); err != nil {
 		return svc, fmt.Errorf("unable to init file storage %w", err)
 	}

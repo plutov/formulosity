@@ -133,7 +133,11 @@ func CallWebhook(svc services.Services, survey *types.Survey, session *types.Sur
 	if err != nil {
 		return fmt.Errorf("error making request, err: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			svc.Logger.Error("unable to close body", "err", err)
+		}
+	}()
 
 	statusCode := resp.StatusCode
 	responseBody, err := io.ReadAll(resp.Body)

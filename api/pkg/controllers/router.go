@@ -42,7 +42,7 @@ func (h *Handler) surveyUUIDMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return response.BadRequest(c, "survey_uuid is required")
 		}
 
-		survey, err := h.Services.Storage.GetSurveyByField("uuid", surveyUUID)
+		survey, err := h.Storage.GetSurveyByField("uuid", surveyUUID)
 		if err != nil {
 			return response.NotFound(c, "survey not found")
 		}

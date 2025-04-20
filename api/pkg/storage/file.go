@@ -3,6 +3,7 @@ package storage
 import (
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -13,6 +14,7 @@ import (
 )
 
 type File struct {
+	Logger    *slog.Logger
 	uploadDir string
 }
 
@@ -40,18 +42,26 @@ func (p *File) SaveFile(file *types.File) (string, error) {
 
 	outFile, err := os.Create(fullPath)
 	if err != nil {
-		return "", fmt.Errorf("failed to create file: %v", err)
+		return "", err
 	}
-	defer outFile.Close()
+	defer func() {
+		if err := outFile.Close(); err != nil {
+			p.Logger.Error("unable to close file", "err", err)
+		}
+	}()
 
 	dataSize, err := io.Copy(outFile, file.Data)
 	if err != nil {
-		os.Remove(fullPath)
-		return "", fmt.Errorf("failed to copy file: %v", err)
+		if rmErr := os.Remove(fullPath); rmErr != nil {
+			return "", rmErr
+		}
+		return "", err
 	}
 
 	if dataSize == 0 {
-		os.Remove(fullPath)
+		if rmErr := os.Remove(fullPath); rmErr != nil {
+			return "", rmErr
+		}
 		return "", fmt.Errorf("file content is empty")
 	}
 

@@ -11,7 +11,11 @@ import (
 
 func SyncSurveysOnChange(svc services.Services) {
 	watcher, _ := fsnotify.NewWatcher()
-	defer watcher.Close()
+	defer func() {
+		if err := watcher.Close(); err != nil {
+			svc.Logger.Error("unable to close watcher", "err", err)
+		}
+	}()
 
 	dir := os.Getenv("SURVEYS_DIR")
 

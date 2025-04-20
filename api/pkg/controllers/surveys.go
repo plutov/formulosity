@@ -60,7 +60,7 @@ type updateSurveyReq struct {
 func (h *Handler) getSurveys(c echo.Context) error {
 	surveys, err := h.Storage.GetSurveys()
 	if err != nil {
-		h.Services.Logger.Error("failed to get surveys", "err", err)
+		h.Logger.Error("failed to get surveys", "err", err)
 		return response.InternalErrorDefaultMsg(c)
 	}
 
