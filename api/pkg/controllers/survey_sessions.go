@@ -188,3 +188,24 @@ func (h *Handler) downloadFile(c echo.Context) error {
 
 	return c.Attachment(path, fileName)
 }
+
+func (h *Handler) deleteSurveySession(c echo.Context) error {
+	surveyCtx := c.Get("survey").(types.Survey)
+
+	survey, err := surveyspkg.GetSurveyByUUID(h.Services, surveyCtx.UUID)
+	if err != nil || survey == nil {
+		return response.BadRequest(c, "survey not found")
+	}
+
+	sessionUUID := c.Param("session_uuid")
+
+	session, err := surveyspkg.DeleteSurveySession(h.Services, *survey, sessionUUID)
+	if err != nil {
+		return response.BadRequest(c, "session not found")
+	}
+
+	return response.Ok(c, echo.Map{
+		"survey":  *survey,
+		"session": *session,
+	})
+}

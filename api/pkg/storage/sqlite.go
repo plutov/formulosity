@@ -300,6 +300,15 @@ func (p *Sqlite) GetSurveySession(surveyUUID string, sessionUUID string) (*types
 	return session, nil
 }
 
+func (p *Sqlite) DeleteSurveySession(sessionUUID string) error {
+	query := `DELETE
+	FROM surveys_sessions
+	WHERE uuid=$1;`
+
+	_, err := p.conn.Exec(query, sessionUUID)
+	return err
+}
+
 func (p *Sqlite) GetSurveySessionByIPAddress(surveyUUID string, ipAddr string) (*types.SurveySession, error) {
 	query := `SELECT
 		ss.id, ss.uuid, ss.created_at, ss.status, s.uuid
@@ -319,7 +328,6 @@ func (p *Sqlite) GetSurveySessionByIPAddress(surveyUUID string, ipAddr string) (
 	}
 
 	return session, nil
-
 }
 
 func (p *Sqlite) GetSurveySessionAnswers(sessionUUID string) ([]types.QuestionAnswer, error) {

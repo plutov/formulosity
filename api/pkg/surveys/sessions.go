@@ -70,6 +70,29 @@ func GetSurveySession(svc services.Services, survey types.Survey, sessionUUID st
 	return session, nil
 }
 
+func DeleteSurveySession(svc services.Services, survey types.Survey, sessionUUID string) (*types.SurveySession, error) {
+	logCtx := svc.Logger.With("survey_uuid", survey.UUID, "session_uuid", sessionUUID)
+	logCtx.Info("deleting survey session")
+
+	session, err := svc.Storage.GetSurveySession(survey.UUID, sessionUUID)
+	if err != nil {
+		msg := "session not found"
+		logCtx.Error(msg, "err", err)
+		return nil, errors.New(msg)
+	}
+
+	if session == nil {
+		return nil, errors.New("session not found")
+	}
+
+	if err := svc.Storage.DeleteSurveySession(session.UUID); err != nil {
+		msg := "unable to delete session"
+		logCtx.Error(msg, "err", err)
+	}
+
+	return session, nil
+}
+
 func convertAnswerBytesToAnswerType(svc services.Services, survey *types.Survey, answers []types.QuestionAnswer) []types.QuestionAnswer {
 	for i, a := range answers {
 		for _, q := range survey.Config.Questions.Questions {

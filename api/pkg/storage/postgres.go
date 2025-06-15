@@ -273,6 +273,15 @@ func (p *Postgres) GetSurveySession(surveyUUID string, sessionUUID string) (*typ
 	return session, nil
 }
 
+func (p *Postgres) DeleteSurveySession(sessionUUID string) error {
+	query := `DELETE
+	FROM surveys_sessions
+	WHERE uuid=$1;`
+
+	_, err := p.conn.Exec(query, sessionUUID)
+	return err
+}
+
 func (p *Postgres) GetSurveySessionByIPAddress(surveyUUID string, ipAddr string) (*types.SurveySession, error) {
 	query := `SELECT
 		ss.id, ss.uuid, ss.created_at, ss.status, s.uuid
@@ -292,7 +301,6 @@ func (p *Postgres) GetSurveySessionByIPAddress(surveyUUID string, ipAddr string)
 	}
 
 	return session, nil
-
 }
 
 func (p *Postgres) GetSurveySessionAnswers(sessionUUID string) ([]types.QuestionAnswer, error) {

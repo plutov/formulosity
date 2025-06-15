@@ -276,6 +276,8 @@ Where `{SURVEY_ID}` id the UUID of a given survey.
 
 ## Installation & Deployment
 
+You can build and run both API and UI with Docker Compose:
+
 ```
 docker-compose up -d --build
 ```
@@ -303,6 +305,15 @@ UI:
 - `CONSOLE_API_ADDR_INTERNAL` - Internal address of the Go backend, e.g. `http://api:8080` (could be the same as `CONSOLE_API_ADDR`).
 - `IRON_SESSION_SECRET` - Secret for session encryption
 - `HTTP_BASIC_AUTH` - Format: `user:pass` for basic auth (optional)
+
+### Run UI with npm
+
+It's also possible to run UI using `npm`:
+
+```
+npm install
+npm run dev
+```
 
 ## Tech Stack
 

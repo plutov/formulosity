@@ -17,6 +17,7 @@ type Interface interface {
 	UpdateSurveySessionStatus(sessionUUID string, newStatus types.SurveySessionStatus) error
 	GetSurveySessionByIPAddress(surveyUUID string, ipAddr string) (*types.SurveySession, error)
 	GetSurveySession(surveyUUID string, sessionUUID string) (*types.SurveySession, error)
+	DeleteSurveySession(sessionUUID string) error
 	UpsertSurveyQuestions(survey *types.Survey) error
 	GetSurveyQuestions(surveyID int64) ([]types.Question, error)
 	GetSurveySessionsWithAnswers(surveyUUID string, filter *types.SurveySessionsFilter) ([]types.SurveySession, int, error)

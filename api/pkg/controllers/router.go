@@ -19,6 +19,7 @@ func NewRouter(h *Handler) *echo.Echo {
 	e.GET("/app/surveys", h.getSurveys)
 	e.PATCH("/app/surveys/:survey_uuid", h.surveyUUIDMiddleware(h.updateSurvey))
 	e.GET("/app/surveys/:survey_uuid/sessions", h.surveyUUIDMiddleware(h.getSurveySessions))
+	e.DELETE("/app/surveys/:survey_uuid/sessions/:session_uuid", h.surveyUUIDMiddleware(h.deleteSurveySession))
 	e.GET("/app/surveys/:survey_uuid/download/:file_name", h.surveyUUIDMiddleware(h.downloadFile))
 
 	surveys := e.Group("/surveys")
