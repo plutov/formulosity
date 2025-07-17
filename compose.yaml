@@ -8,14 +8,11 @@ services:
     depends_on:
       - postgres
     environment:
-      - DATABASE_TYPE=sqlite # postgres|sqlite
-      # - DATABASE_URL=postgres://user:pass@postgres:5432/formulosity?sslmode=disable
-      - DATABASE_URL=/root/sqlite3/formulosity.db
+      - DATABASE_URL=postgres://user:pass@postgres:5432/formulosity?sslmode=disable
       - SURVEYS_DIR=/root/surveys
       - UPLOADS_DIR=/root/uploads
     volumes:
       - ./api/surveys:/root/surveys
-      - ./api/sqlite3:/root/sqlite3
       - ./api/uploads:/root/uploads
   ui:
     restart: always
