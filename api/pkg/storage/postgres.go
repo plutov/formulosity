@@ -251,10 +251,6 @@ func (p *Postgres) CreateSurveySession(session *types.SurveySession) error {
 		RETURNING id, uuid;`
 
 	row := p.conn.QueryRow(p.ctx, query, session.Status, session.SurveyUUID, session.IPAddr)
-	if row == nil {
-		return fmt.Errorf("unable to create survey session")
-	}
-
 	return row.Scan(&session.ID, &session.UUID)
 }
 
