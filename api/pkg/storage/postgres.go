@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -110,39 +109,61 @@ func (p *Postgres) CreateSurvey(survey *types.Survey) error {
 }
 
 func (p *Postgres) UpdateSurvey(survey *types.Survey) error {
-	query := `UPDATE surveys
-		SET parse_status=$1, delivery_status=$2, error_log=$3, name=$4, config=$5, url_slug=$6
-		WHERE uuid=$7;`
+	configBytes, err := json.Marshal(survey.Config)
+	if err != nil {
+		return fmt.Errorf("failed to marshal survey config: %w", err)
+	}
 
-	_, err := p.conn.Exec(p.ctx, query, survey.ParseStatus, survey.DeliveryStatus, survey.ErrorLog, survey.Name, survey.Config, survey.URLSlug, survey.UUID)
-	return err
+	uuid, err := db.DecodeUUID(survey.UUID)
+	if err != nil {
+		return fmt.Errorf("failed to decode UUID: %w", err)
+	}
+
+	return p.queries.UpdateSurvey(p.ctx, db.UpdateSurveyParams{
+		ParseStatus:    db.NullSurveyParseStatuses{Valid: true, SurveyParseStatuses: db.SurveyParseStatuses(survey.ParseStatus)},
+		DeliveryStatus: db.NullSurveyDeliveryStatuses{Valid: true, SurveyDeliveryStatuses: db.SurveyDeliveryStatuses(survey.DeliveryStatus)},
+		ErrorLog:       pgtype.Text{Valid: true, String: survey.ErrorLog},
+		Name:           survey.Name,
+		Config:         configBytes,
+		UrlSlug:        survey.URLSlug,
+		Uuid:           uuid,
+	})
 }
 
 func (p *Postgres) GetSurveys() ([]*types.Survey, error) {
-	query := `SELECT
-		s.id, s.uuid, s.created_at,
-		s.parse_status, s.delivery_status,
-		s.error_log, s.name, s.config, s.url_slug,
-		(SELECT COUNT(*) FROM surveys_sessions WHERE survey_id = s.id AND status = $1) AS sessions_count_in_progress,
-		(SELECT COUNT(*) FROM surveys_sessions WHERE survey_id = s.id AND status = $2) AS sessions_count_completed
-	FROM surveys AS s;`
-
-	rows, err := p.conn.Query(p.ctx, query, types.SurveySessionStatus_InProgress, types.SurveySessionStatus_Completed)
+	rows, err := p.queries.GetSurveys(p.ctx, db.GetSurveysParams{
+		Status: db.NullSurveysSessionsStatus{
+			Valid:                 true,
+			SurveysSessionsStatus: db.SurveysSessionsStatus(types.SurveySessionStatus_InProgress),
+		},
+		Status_2: db.NullSurveysSessionsStatus{
+			Valid:                 true,
+			SurveysSessionsStatus: db.SurveysSessionsStatus(types.SurveySessionStatus_Completed),
+		},
+	})
 	if err != nil {
 		return nil, err
 	}
 
 	surveys := []*types.Survey{}
-	for rows.Next() {
-		survey := &types.Survey{}
-
-		err := rows.Scan(&survey.ID, &survey.UUID, &survey.CreatedAt,
-			&survey.ParseStatus, &survey.DeliveryStatus, &survey.ErrorLog,
-			&survey.Name, &survey.Config, &survey.URLSlug,
-			&survey.Stats.SessionsCountInProgess, &survey.Stats.SessionsCountCompleted)
-		if err != nil {
-			return nil, err
+	for _, row := range rows {
+		survey := &types.Survey{
+			ID:             int64(row.ID),
+			UUID:           db.EncodeUUID(row.Uuid),
+			CreatedAt:      row.CreatedAt.Time,
+			ParseStatus:    types.SurveyParseStatus(row.ParseStatus.SurveyParseStatuses),
+			DeliveryStatus: types.SurveyDeliveryStatus(row.DeliveryStatus.SurveyDeliveryStatuses),
+			ErrorLog:       row.ErrorLog.String,
+			Name:           row.Name,
+			URLSlug:        row.UrlSlug,
 		}
+
+		if err := json.Unmarshal(row.Config, &survey.Config); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal survey config: %w", err)
+		}
+
+		survey.Stats.SessionsCountInProgess = int(row.SessionsCountInProgress)
+		survey.Stats.SessionsCountCompleted = int(row.SessionsCountCompleted)
 
 		totalResponses := survey.Stats.SessionsCountInProgess + survey.Stats.SessionsCountCompleted
 		if totalResponses > 0 {
@@ -156,27 +177,61 @@ func (p *Postgres) GetSurveys() ([]*types.Survey, error) {
 }
 
 func (p *Postgres) GetSurveyByField(field string, value interface{}) (*types.Survey, error) {
-	query := fmt.Sprintf(`SELECT
-		s.id, s.uuid, s.created_at,
-		s.parse_status, s.delivery_status,
-		s.error_log, s.name, s.config, s.url_slug
-	FROM surveys AS s
-	WHERE s.%s=$1;`, field)
+	var survey *types.Survey
+	var err error
 
-	row := p.conn.QueryRow(p.ctx, query, value)
-	survey := &types.Survey{}
-	err := row.Scan(&survey.ID, &survey.UUID, &survey.CreatedAt,
-		&survey.ParseStatus, &survey.DeliveryStatus, &survey.ErrorLog,
-		&survey.Name, &survey.Config, &survey.URLSlug)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
+	switch field {
+	case "uuid":
+		uuid, err := db.DecodeUUID(value.(string))
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode UUID: %w", err)
 		}
-
-		return nil, err
+		row, err := p.queries.GetSurveyByUUID(p.ctx, uuid)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return nil, nil
+			}
+			return nil, err
+		}
+		survey = &types.Survey{
+			ID:             int64(row.ID),
+			UUID:           db.EncodeUUID(row.Uuid),
+			CreatedAt:      row.CreatedAt.Time,
+			ParseStatus:    types.SurveyParseStatus(row.ParseStatus.SurveyParseStatuses),
+			DeliveryStatus: types.SurveyDeliveryStatus(row.DeliveryStatus.SurveyDeliveryStatuses),
+			ErrorLog:       row.ErrorLog.String,
+			Name:           row.Name,
+			URLSlug:        row.UrlSlug,
+		}
+		if err := json.Unmarshal(row.Config, &survey.Config); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal survey config: %w", err)
+		}
+	case "url_slug":
+		row, err := p.queries.GetSurveyByURLSlug(p.ctx, value.(string))
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return nil, nil
+			}
+			return nil, err
+		}
+		survey = &types.Survey{
+			ID:             int64(row.ID),
+			UUID:           db.EncodeUUID(row.Uuid),
+			CreatedAt:      row.CreatedAt.Time,
+			ParseStatus:    types.SurveyParseStatus(row.ParseStatus.SurveyParseStatuses),
+			DeliveryStatus: types.SurveyDeliveryStatus(row.DeliveryStatus.SurveyDeliveryStatuses),
+			ErrorLog:       row.ErrorLog.String,
+			Name:           row.Name,
+			URLSlug:        row.UrlSlug,
+		}
+		if err := json.Unmarshal(row.Config, &survey.Config); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal survey config: %w", err)
+		}
+	default:
+		return nil, fmt.Errorf("unsupported field: %s", field)
 	}
 
-	return survey, nil
+	return survey, err
 }
 
 func (p *Postgres) UpsertSurveyQuestions(survey *types.Survey) error {
@@ -184,32 +239,26 @@ func (p *Postgres) UpsertSurveyQuestions(survey *types.Survey) error {
 		return nil
 	}
 
-	placeholders := []string{}
-	values := []interface{}{}
-	values = append(values, survey.ID)
-	for i := range survey.Config.Questions.Questions {
-		placeholders = append(placeholders, fmt.Sprintf("$%d", i+2))
-		values = append(values, survey.Config.Questions.Questions[i].ID)
+	questionIds := make([]string, len(survey.Config.Questions.Questions))
+	for i, q := range survey.Config.Questions.Questions {
+		questionIds[i] = q.ID
 	}
-	// Delete removed questions
-	deleteQuery := `DELETE FROM surveys_questions
-	WHERE survey_id=$1
-	AND question_id NOT IN (` + strings.Join(placeholders, ", ") + `);`
 
-	_, err := p.conn.Exec(p.ctx, deleteQuery, values...)
+	// Delete removed questions
+	err := p.queries.DeleteSurveyQuestionsNotInList(p.ctx, db.DeleteSurveyQuestionsNotInListParams{
+		SurveyID: int32(survey.ID),
+		Column2:  questionIds,
+	})
 	if err != nil {
 		return err
 	}
 
+	// Insert/update questions
 	for _, q := range survey.Config.Questions.Questions {
-		insertQuery := `INSERT INTO surveys_questions
-		(survey_id, question_id)
-		VALUES ($1, $2)
-		ON CONFLICT (survey_id, question_id)
-		DO NOTHING
-		;`
-
-		_, err := p.conn.Exec(p.ctx, insertQuery, survey.ID, q.ID)
+		err := p.queries.UpsertSurveyQuestion(p.ctx, db.UpsertSurveyQuestionParams{
+			SurveyID:   int32(survey.ID),
+			QuestionID: q.ID,
+		})
 		if err != nil {
 			return err
 		}
@@ -219,25 +268,17 @@ func (p *Postgres) UpsertSurveyQuestions(survey *types.Survey) error {
 }
 
 func (p *Postgres) GetSurveyQuestions(surveyID int64) ([]types.Question, error) {
-	query := `SELECT
-		uuid, question_id
-	FROM surveys_questions
-	WHERE survey_id=$1;`
-
-	rows, err := p.conn.Query(p.ctx, query, surveyID)
+	rows, err := p.queries.GetSurveyQuestions(p.ctx, int32(surveyID))
 	if err != nil {
 		return []types.Question{}, err
 	}
 
 	questions := []types.Question{}
-	for rows.Next() {
-		question := types.Question{}
-
-		err := rows.Scan(&question.UUID, &question.ID)
-		if err != nil {
-			return []types.Question{}, err
+	for _, row := range rows {
+		question := types.Question{
+			UUID: db.EncodeUUID(row.Uuid),
+			ID:   row.QuestionID,
 		}
-
 		questions = append(questions, question)
 	}
 
@@ -245,102 +286,132 @@ func (p *Postgres) GetSurveyQuestions(surveyID int64) ([]types.Question, error) 
 }
 
 func (p *Postgres) CreateSurveySession(session *types.SurveySession) error {
-	query := `INSERT INTO surveys_sessions
-		(status, survey_id, ip_addr)
-		VALUES ($1, (SELECT id FROM surveys WHERE uuid = $2), $3)
-		RETURNING id, uuid;`
+	surveyUUID, err := db.DecodeUUID(session.SurveyUUID)
+	if err != nil {
+		return fmt.Errorf("failed to decode survey UUID: %w", err)
+	}
 
-	row := p.conn.QueryRow(p.ctx, query, session.Status, session.SurveyUUID, session.IPAddr)
-	return row.Scan(&session.ID, &session.UUID)
+	row, err := p.queries.CreateSurveySession(p.ctx, db.CreateSurveySessionParams{
+		Status: db.NullSurveysSessionsStatus{Valid: true, SurveysSessionsStatus: db.SurveysSessionsStatus(session.Status)},
+		Uuid:   surveyUUID,
+		IpAddr: pgtype.Text{Valid: true, String: session.IPAddr},
+	})
+	if err != nil {
+		return err
+	}
+
+	session.ID = int64(row.ID)
+	session.UUID = db.EncodeUUID(row.Uuid)
+	return nil
 }
 
 func (p *Postgres) UpdateSurveySessionStatus(sessionUUID string, newStatus types.SurveySessionStatus) error {
-	completedAt := "NULL"
-	if newStatus == types.SurveySessionStatus_Completed {
-		completedAt = "NOW()"
+	uuid, err := db.DecodeUUID(sessionUUID)
+	if err != nil {
+		return fmt.Errorf("failed to decode session UUID: %w", err)
 	}
 
-	query := fmt.Sprintf(`UPDATE surveys_sessions
-		SET status = $1, completed_at = %s
-		WHERE uuid = $2;`, completedAt)
-
-	_, err := p.conn.Exec(p.ctx, query, newStatus, sessionUUID)
-
-	return err
+	if newStatus == types.SurveySessionStatus_Completed {
+		return p.queries.UpdateSurveySessionStatusCompleted(p.ctx, db.UpdateSurveySessionStatusCompletedParams{
+			Status: db.NullSurveysSessionsStatus{Valid: true, SurveysSessionsStatus: db.SurveysSessionsStatus(newStatus)},
+			Uuid:   uuid,
+		})
+	} else {
+		return p.queries.UpdateSurveySessionStatus(p.ctx, db.UpdateSurveySessionStatusParams{
+			Status: db.NullSurveysSessionsStatus{Valid: true, SurveysSessionsStatus: db.SurveysSessionsStatus(newStatus)},
+			Uuid:   uuid,
+		})
+	}
 }
 
 func (p *Postgres) GetSurveySession(surveyUUID string, sessionUUID string) (*types.SurveySession, error) {
-	query := `SELECT
-		ss.id, ss.uuid, ss.created_at, ss.status, s.uuid
-	FROM surveys_sessions AS ss
-	INNER JOIN surveys AS s ON s.id = ss.survey_id
-	WHERE ss.uuid=$1 AND s.uuid=$2;`
+	sessionUUIDPg, err := db.DecodeUUID(sessionUUID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode session UUID: %w", err)
+	}
 
-	row := p.conn.QueryRow(p.ctx, query, sessionUUID, surveyUUID)
-	session := &types.SurveySession{}
-	err := row.Scan(&session.ID, &session.UUID, &session.CreatedAt, &session.Status, &session.SurveyUUID)
+	surveyUUIDPg, err := db.DecodeUUID(surveyUUID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode survey UUID: %w", err)
+	}
+
+	row, err := p.queries.GetSurveySession(p.ctx, db.GetSurveySessionParams{
+		Uuid:   sessionUUIDPg,
+		Uuid_2: surveyUUIDPg,
+	})
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
-
 		return nil, err
+	}
+
+	session := &types.SurveySession{
+		ID:         int64(row.ID),
+		UUID:       db.EncodeUUID(row.Uuid),
+		CreatedAt:  row.CreatedAt.Time,
+		Status:     types.SurveySessionStatus(row.Status.SurveysSessionsStatus),
+		SurveyUUID: db.EncodeUUID(row.SurveyUuid),
 	}
 
 	return session, nil
 }
 
 func (p *Postgres) DeleteSurveySession(sessionUUID string) error {
-	query := `DELETE
-	FROM surveys_sessions
-	WHERE uuid=$1;`
+	uuid, err := db.DecodeUUID(sessionUUID)
+	if err != nil {
+		return fmt.Errorf("failed to decode session UUID: %w", err)
+	}
 
-	_, err := p.conn.Exec(p.ctx, query, sessionUUID)
-	return err
+	return p.queries.DeleteSurveySession(p.ctx, uuid)
 }
 
 func (p *Postgres) GetSurveySessionByIPAddress(surveyUUID string, ipAddr string) (*types.SurveySession, error) {
-	query := `SELECT
-		ss.id, ss.uuid, ss.created_at, ss.status, s.uuid
-	FROM surveys_sessions AS ss
-	INNER JOIN surveys AS s ON s.id = ss.survey_id
-	WHERE s.uuid=$1 AND ss.ip_addr=$2;`
+	surveyUUIDPg, err := db.DecodeUUID(surveyUUID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode survey UUID: %w", err)
+	}
 
-	row := p.conn.QueryRow(p.ctx, query, surveyUUID, ipAddr)
-	session := &types.SurveySession{}
-	err := row.Scan(&session.ID, &session.UUID, &session.CreatedAt, &session.Status, &session.SurveyUUID)
+	row, err := p.queries.GetSurveySessionByIPAddress(p.ctx, db.GetSurveySessionByIPAddressParams{
+		Uuid:   surveyUUIDPg,
+		IpAddr: pgtype.Text{Valid: true, String: ipAddr},
+	})
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
-
 		return nil, err
+	}
+
+	session := &types.SurveySession{
+		ID:         int64(row.ID),
+		UUID:       db.EncodeUUID(row.Uuid),
+		CreatedAt:  row.CreatedAt.Time,
+		Status:     types.SurveySessionStatus(row.Status.SurveysSessionsStatus),
+		SurveyUUID: db.EncodeUUID(row.SurveyUuid),
 	}
 
 	return session, nil
 }
 
 func (p *Postgres) GetSurveySessionAnswers(sessionUUID string) ([]types.QuestionAnswer, error) {
-	query := `SELECT
-		q.id, q.uuid, sa.answer
-	FROM surveys_answers AS sa
-	LEFT JOIN surveys_questions AS q ON q.id = sa.question_id
-	WHERE session_id = (SELECT id FROM surveys_sessions WHERE uuid = $1);`
+	sessionUUIDPg, err := db.DecodeUUID(sessionUUID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode session UUID: %w", err)
+	}
 
-	rows, err := p.conn.Query(p.ctx, query, sessionUUID)
+	rows, err := p.queries.GetSurveySessionAnswers(p.ctx, sessionUUIDPg)
 	if err != nil {
 		return nil, err
 	}
 
 	answers := []types.QuestionAnswer{}
-	for rows.Next() {
-		answer := types.QuestionAnswer{}
-
-		err := rows.Scan(&answer.QuestionID, &answer.QuestionUUID, &answer.AnswerBytes)
-		if err != nil {
-			return nil, err
+	for _, row := range rows {
+		answer := types.QuestionAnswer{
+			QuestionID:   row.QuestionID.String,
+			QuestionUUID: db.EncodeUUID(row.QuestionUuid),
+			AnswerBytes:  row.Answer,
 		}
-
 		answers = append(answers, answer)
 	}
 
@@ -348,22 +419,27 @@ func (p *Postgres) GetSurveySessionAnswers(sessionUUID string) ([]types.Question
 }
 
 func (p *Postgres) UpsertSurveyQuestionAnswer(sessionUUID string, questionUUID string, answer types.Answer) error {
-	query := `INSERT INTO surveys_answers
-		(session_id, question_id, answer)
-		VALUES (
-			(SELECT id FROM surveys_sessions WHERE uuid = $1),
-			(SELECT id FROM surveys_questions WHERE uuid = $2),
-			$3
-		)
-		ON CONFLICT (session_id, question_id)
-		DO UPDATE SET answer = EXCLUDED.answer;`
-
-	_, err := p.conn.Exec(p.ctx, query, sessionUUID, questionUUID, answer)
+	sessionUUIDPg, err := db.DecodeUUID(sessionUUID)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to decode session UUID: %w", err)
 	}
 
-	return nil
+	questionUUIDPg, err := db.DecodeUUID(questionUUID)
+	if err != nil {
+		return fmt.Errorf("failed to decode question UUID: %w", err)
+	}
+
+	// Convert answer to bytes via JSON marshaling
+	answerBytes, err := json.Marshal(answer)
+	if err != nil {
+		return fmt.Errorf("failed to marshal answer: %w", err)
+	}
+
+	return p.queries.UpsertSurveyQuestionAnswer(p.ctx, db.UpsertSurveyQuestionAnswerParams{
+		Uuid:   sessionUUIDPg,
+		Uuid_2: questionUUIDPg,
+		Answer: answerBytes,
+	})
 }
 
 func (p *Postgres) GetSurveySessionsWithAnswers(surveyUUID string, filter *types.SurveySessionsFilter) ([]types.SurveySession, int, error) {
@@ -436,24 +512,21 @@ func (p *Postgres) GetSurveySessionsWithAnswers(surveyUUID string, filter *types
 }
 
 func (p *Postgres) getSurveySessionsCount(surveyUUID string) (int, error) {
-	query := `SELECT
-		COUNT(*)
-	FROM surveys_sessions AS ss
-	INNER JOIN surveys AS s ON s.id = ss.survey_id
-	WHERE s.uuid=$1;`
+	surveyUUIDPg, err := db.DecodeUUID(surveyUUID)
+	if err != nil {
+		return 0, fmt.Errorf("failed to decode survey UUID: %w", err)
+	}
 
-	row := p.conn.QueryRow(p.ctx, query, surveyUUID)
-	var count int
-	err := row.Scan(&count)
-	return count, err
+	count, err := p.queries.GetSurveySessionsCount(p.ctx, surveyUUIDPg)
+	return int(count), err
 }
 
 func (p *Postgres) StoreWebhookResponse(sessionId int, responseStatus int, response string) error {
-	query := `INSERT INTO surveys_webhook_responses
-		(created_at, session_id, response_status, response)
-		VALUES ($1, $2, $3, $4);`
-
-	createdAtStr := time.Now().UTC().Format(types.DateTimeFormat)
-	_, err := p.conn.Exec(p.ctx, query, createdAtStr, sessionId, responseStatus, response)
-	return err
+	now := time.Now().UTC()
+	return p.queries.StoreWebhookResponse(p.ctx, db.StoreWebhookResponseParams{
+		CreatedAt:      pgtype.Timestamp{Time: now, Valid: true},
+		SessionID:      int32(sessionId),
+		ResponseStatus: int32(responseStatus),
+		Response:       pgtype.Text{String: response, Valid: true},
+	})
 }

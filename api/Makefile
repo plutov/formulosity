@@ -6,7 +6,7 @@ test:
 	go test -v -bench=. -race ./...
 
 gen: clean
-	mockery --all --recursive --dir ./pkg --case underscore --with-expecter
+	mockery
 
 clean:
 	rm -rf mocks
