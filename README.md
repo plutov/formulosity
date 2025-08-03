@@ -22,7 +22,6 @@ This approach offers a number of advantages, including:
 - [x] Personalized options: intro, outro, etc.
 - [x] Cookie/IP duplicate response protection
 - [x] Admin user authentication
-- [x] Different database options: SQLite and Postgres
 - [x] Continue where you left off
 - [x] Advanced validation rules
 - [x] Export responses in UI or via API
@@ -288,14 +287,13 @@ You can deploy individual services to any cloud provider or self host them.
 
 - Go backend. It's packaged as a Docker container and can be deployed anywhere.
 - Next.js frontend. It's also packaged as a Docker container, but also can be deployed to Vercel for example.
-- [Optional] Postgres database. You can use managed Postgres services or deploy it yourself.
+- Postgres database. You can use managed Postgres services or deploy it yourself.
 
 ### Environment Variables
 
 API:
 
-- `DATABASE_TYPE` - `sqlite` or `postgres`
-- `DATABASE_URL` - Postgres or SQLite connection string
+- `DATABASE_URL` - Postgres connection string
 - `SURVEYS_DIR` - Directory with surveys, e.g. `/root/surveys`. It's suggested to use mounted volume for this directory.
 - `UPLOADS_DIR` - Directory for uploading files from the survey forms.
 
@@ -317,17 +315,16 @@ npm run dev
 
 ## Tech Stack
 
-- Backend: Go, (Postgres or SQLite)
+- Backend: Go, Postgres
 - UI: Next.js, Tailwind CSS
 
-## Create new SQLite/Postgres migration
+## Create new Postgres migration
 
 Make sure to install [go-migrate](https://github.com/golang-migrate/migrate) first.
 
 ```
 cd api
-migrate create -dir migrations/postgres -ext sql -seq name
-migrate create -dir migrations/sqlite -ext sql -seq name
+migrate create -dir migrations -ext sql -seq name
 ```
 
 ## Run Go tests

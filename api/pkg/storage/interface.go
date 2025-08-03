@@ -7,12 +7,10 @@ type Interface interface {
 	Ping() error
 	Close() error
 	Migrate() error
-
 	CreateSurvey(survey *types.Survey) error
 	UpdateSurvey(survey *types.Survey) error
 	GetSurveys() ([]*types.Survey, error)
 	GetSurveyByField(field string, value interface{}) (*types.Survey, error)
-
 	CreateSurveySession(session *types.SurveySession) error
 	UpdateSurveySessionStatus(sessionUUID string, newStatus types.SurveySessionStatus) error
 	GetSurveySessionByIPAddress(surveyUUID string, ipAddr string) (*types.SurveySession, error)
@@ -23,13 +21,11 @@ type Interface interface {
 	GetSurveySessionsWithAnswers(surveyUUID string, filter *types.SurveySessionsFilter) ([]types.SurveySession, int, error)
 	GetSurveySessionAnswers(sessionUUID string) ([]types.QuestionAnswer, error)
 	UpsertSurveyQuestionAnswer(sessionUUID string, questionUUID string, answer types.Answer) error
-
 	StoreWebhookResponse(sessionId int, responseStatus int, response string) error
 }
 
 type FileInterface interface {
 	Init() error
-
 	SaveFile(file *types.File) (string, error)
 	IsFileExist(fileName string) (bool, string, error)
 }

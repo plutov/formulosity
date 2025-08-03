@@ -1,35 +1,47 @@
 package storage
 
 import (
+	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/golang-migrate/migrate/v4"
-	migratepg "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/plutov/formulosity/api/pkg/db"
 	"github.com/plutov/formulosity/api/pkg/types"
 )
 
 type Postgres struct {
-	conn *sql.DB
-	addr string
+	conn    *pgx.Conn
+	queries *db.Queries
+	addr    string
+	ctx     context.Context
 }
 
 func (p *Postgres) Init() error {
+	p.ctx = context.Background()
+
 	p.addr = os.Getenv("DATABASE_URL")
 	if len(p.addr) == 0 {
 		return errors.New("DATABASE_URL env var is empty")
 	}
 
 	var err error
-	p.conn, err = sql.Open("postgres", p.addr)
+	p.conn, err = pgx.Connect(context.Background(), p.addr)
 	if err != nil {
-		return err
+		log.Fatalf("cannot connect to postgres: %v", err)
 	}
+
+	p.queries = db.New(p.conn)
 
 	if err = p.Ping(); err != nil {
 		return err
@@ -39,52 +51,61 @@ func (p *Postgres) Init() error {
 }
 
 func (p *Postgres) Ping() error {
-	return p.conn.Ping()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	return p.conn.Ping(ctx)
 }
 
 func (p *Postgres) Close() error {
-	return p.conn.Close()
+	return p.conn.Close(context.Background())
 }
 
 func (p *Postgres) Migrate() error {
-	migrationsDir := "file://migrations/postgres"
+	migrationsDir := "file://migrations"
 
-	driver, err := migratepg.WithInstance(p.conn, &migratepg.Config{
-		MigrationsTable: "schema_migrations",
-	})
-	if err != nil {
-		return fmt.Errorf("error creating migration driver: %w", err)
-	}
-
-	m, err := migrate.NewWithDatabaseInstance(migrationsDir, "postgres", driver)
+	m, err := migrate.New(migrationsDir, p.addr)
 	if err != nil {
 		return fmt.Errorf("failed to create migration instance: %w", err)
 	}
-
-	err = m.Up()
-	if err != nil {
+	if err := m.Up(); err != nil {
 		if err != migrate.ErrNoChange {
 			return fmt.Errorf("failed to run migrations: %w", err)
 		}
 	}
+
 	return nil
 }
 
 func (p *Postgres) CreateSurvey(survey *types.Survey) error {
-	query := `INSERT INTO surveys
-		(parse_status, delivery_status, error_log, name, config, url_slug)
-		VALUES ($1, $2, $3, $4, $5, $6)
-		RETURNING id;`
-
-	row := p.conn.QueryRow(query, survey.ParseStatus, survey.DeliveryStatus, survey.ErrorLog, survey.Name, survey.Config, survey.URLSlug)
-	if row == nil {
-		return fmt.Errorf("unable to create survey")
+	configBytes, err := json.Marshal(survey.Config)
+	if err != nil {
+		return fmt.Errorf("failed to marshal survey config: %w", err)
 	}
 
-	if err := row.Scan(&survey.ID); err != nil {
-		return err
+	surveyDb, err := p.queries.CreateSurvey(context.Background(), db.CreateSurveyParams{
+		ParseStatus: db.NullSurveyParseStatuses{
+			Valid:               true,
+			SurveyParseStatuses: db.SurveyParseStatuses(survey.ParseStatus),
+		},
+		DeliveryStatus: db.NullSurveyDeliveryStatuses{
+			Valid:                  true,
+			SurveyDeliveryStatuses: db.SurveyDeliveryStatuses(survey.DeliveryStatus),
+		},
+		ErrorLog: pgtype.Text{
+			Valid:  true,
+			String: survey.ErrorLog,
+		},
+		Name:    survey.Name,
+		Config:  configBytes,
+		UrlSlug: survey.URLSlug,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create survey: %w", err)
 	}
 
+	survey.ID = int64(surveyDb.ID)
+	survey.UUID = db.EncodeUUID(surveyDb.Uuid)
 	return nil
 }
 
@@ -93,7 +114,7 @@ func (p *Postgres) UpdateSurvey(survey *types.Survey) error {
 		SET parse_status=$1, delivery_status=$2, error_log=$3, name=$4, config=$5, url_slug=$6
 		WHERE uuid=$7;`
 
-	_, err := p.conn.Exec(query, survey.ParseStatus, survey.DeliveryStatus, survey.ErrorLog, survey.Name, survey.Config, survey.URLSlug, survey.UUID)
+	_, err := p.conn.Exec(p.ctx, query, survey.ParseStatus, survey.DeliveryStatus, survey.ErrorLog, survey.Name, survey.Config, survey.URLSlug, survey.UUID)
 	return err
 }
 
@@ -106,7 +127,7 @@ func (p *Postgres) GetSurveys() ([]*types.Survey, error) {
 		(SELECT COUNT(*) FROM surveys_sessions WHERE survey_id = s.id AND status = $2) AS sessions_count_completed
 	FROM surveys AS s;`
 
-	rows, err := p.conn.Query(query, types.SurveySessionStatus_InProgress, types.SurveySessionStatus_Completed)
+	rows, err := p.conn.Query(p.ctx, query, types.SurveySessionStatus_InProgress, types.SurveySessionStatus_Completed)
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +163,7 @@ func (p *Postgres) GetSurveyByField(field string, value interface{}) (*types.Sur
 	FROM surveys AS s
 	WHERE s.%s=$1;`, field)
 
-	row := p.conn.QueryRow(query, value)
+	row := p.conn.QueryRow(p.ctx, query, value)
 	survey := &types.Survey{}
 	err := row.Scan(&survey.ID, &survey.UUID, &survey.CreatedAt,
 		&survey.ParseStatus, &survey.DeliveryStatus, &survey.ErrorLog,
@@ -175,7 +196,7 @@ func (p *Postgres) UpsertSurveyQuestions(survey *types.Survey) error {
 	WHERE survey_id=$1
 	AND question_id NOT IN (` + strings.Join(placeholders, ", ") + `);`
 
-	_, err := p.conn.Exec(deleteQuery, values...)
+	_, err := p.conn.Exec(p.ctx, deleteQuery, values...)
 	if err != nil {
 		return err
 	}
@@ -188,7 +209,7 @@ func (p *Postgres) UpsertSurveyQuestions(survey *types.Survey) error {
 		DO NOTHING
 		;`
 
-		_, err := p.conn.Exec(insertQuery, survey.ID, q.ID)
+		_, err := p.conn.Exec(p.ctx, insertQuery, survey.ID, q.ID)
 		if err != nil {
 			return err
 		}
@@ -203,7 +224,7 @@ func (p *Postgres) GetSurveyQuestions(surveyID int64) ([]types.Question, error) 
 	FROM surveys_questions
 	WHERE survey_id=$1;`
 
-	rows, err := p.conn.Query(query, surveyID)
+	rows, err := p.conn.Query(p.ctx, query, surveyID)
 	if err != nil {
 		return []types.Question{}, err
 	}
@@ -229,11 +250,7 @@ func (p *Postgres) CreateSurveySession(session *types.SurveySession) error {
 		VALUES ($1, (SELECT id FROM surveys WHERE uuid = $2), $3)
 		RETURNING id, uuid;`
 
-	row := p.conn.QueryRow(query, session.Status, session.SurveyUUID, session.IPAddr)
-	if row == nil {
-		return fmt.Errorf("unable to create survey session")
-	}
-
+	row := p.conn.QueryRow(p.ctx, query, session.Status, session.SurveyUUID, session.IPAddr)
 	return row.Scan(&session.ID, &session.UUID)
 }
 
@@ -247,7 +264,7 @@ func (p *Postgres) UpdateSurveySessionStatus(sessionUUID string, newStatus types
 		SET status = $1, completed_at = %s
 		WHERE uuid = $2;`, completedAt)
 
-	_, err := p.conn.Exec(query, newStatus, sessionUUID)
+	_, err := p.conn.Exec(p.ctx, query, newStatus, sessionUUID)
 
 	return err
 }
@@ -259,7 +276,7 @@ func (p *Postgres) GetSurveySession(surveyUUID string, sessionUUID string) (*typ
 	INNER JOIN surveys AS s ON s.id = ss.survey_id
 	WHERE ss.uuid=$1 AND s.uuid=$2;`
 
-	row := p.conn.QueryRow(query, sessionUUID, surveyUUID)
+	row := p.conn.QueryRow(p.ctx, query, sessionUUID, surveyUUID)
 	session := &types.SurveySession{}
 	err := row.Scan(&session.ID, &session.UUID, &session.CreatedAt, &session.Status, &session.SurveyUUID)
 	if err != nil {
@@ -278,7 +295,7 @@ func (p *Postgres) DeleteSurveySession(sessionUUID string) error {
 	FROM surveys_sessions
 	WHERE uuid=$1;`
 
-	_, err := p.conn.Exec(query, sessionUUID)
+	_, err := p.conn.Exec(p.ctx, query, sessionUUID)
 	return err
 }
 
@@ -289,7 +306,7 @@ func (p *Postgres) GetSurveySessionByIPAddress(surveyUUID string, ipAddr string)
 	INNER JOIN surveys AS s ON s.id = ss.survey_id
 	WHERE s.uuid=$1 AND ss.ip_addr=$2;`
 
-	row := p.conn.QueryRow(query, surveyUUID, ipAddr)
+	row := p.conn.QueryRow(p.ctx, query, surveyUUID, ipAddr)
 	session := &types.SurveySession{}
 	err := row.Scan(&session.ID, &session.UUID, &session.CreatedAt, &session.Status, &session.SurveyUUID)
 	if err != nil {
@@ -310,7 +327,7 @@ func (p *Postgres) GetSurveySessionAnswers(sessionUUID string) ([]types.Question
 	LEFT JOIN surveys_questions AS q ON q.id = sa.question_id
 	WHERE session_id = (SELECT id FROM surveys_sessions WHERE uuid = $1);`
 
-	rows, err := p.conn.Query(query, sessionUUID)
+	rows, err := p.conn.Query(p.ctx, query, sessionUUID)
 	if err != nil {
 		return nil, err
 	}
@@ -341,7 +358,7 @@ func (p *Postgres) UpsertSurveyQuestionAnswer(sessionUUID string, questionUUID s
 		ON CONFLICT (session_id, question_id)
 		DO UPDATE SET answer = EXCLUDED.answer;`
 
-	_, err := p.conn.Exec(query, sessionUUID, questionUUID, answer)
+	_, err := p.conn.Exec(p.ctx, query, sessionUUID, questionUUID, answer)
 	if err != nil {
 		return err
 	}
@@ -366,7 +383,7 @@ func (p *Postgres) GetSurveySessionsWithAnswers(surveyUUID string, filter *types
 	ORDER BY ss.%s %s
 	;`, filter.SortBy, filter.Order, filter.Limit, filter.Offset, filter.SortBy, filter.Order)
 
-	rows, err := p.conn.Query(query, surveyUUID)
+	rows, err := p.conn.Query(p.ctx, query, surveyUUID)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -425,7 +442,7 @@ func (p *Postgres) getSurveySessionsCount(surveyUUID string) (int, error) {
 	INNER JOIN surveys AS s ON s.id = ss.survey_id
 	WHERE s.uuid=$1;`
 
-	row := p.conn.QueryRow(query, surveyUUID)
+	row := p.conn.QueryRow(p.ctx, query, surveyUUID)
 	var count int
 	err := row.Scan(&count)
 	return count, err
@@ -437,6 +454,6 @@ func (p *Postgres) StoreWebhookResponse(sessionId int, responseStatus int, respo
 		VALUES ($1, $2, $3, $4);`
 
 	createdAtStr := time.Now().UTC().Format(types.DateTimeFormat)
-	_, err := p.conn.Exec(query, createdAtStr, sessionId, responseStatus, response)
+	_, err := p.conn.Exec(p.ctx, query, createdAtStr, sessionId, responseStatus, response)
 	return err
 }

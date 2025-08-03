@@ -1,7 +1,6 @@
 api/pkg/github/tmp/
 api/pkg/parser/tmp/
 api/postgres-data/
-api/sqlite3/
 api/uploads/
 ui/node_modules
 ui/.next/
