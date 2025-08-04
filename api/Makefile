@@ -5,8 +5,11 @@ lint:
 test:
 	go test -v -bench=. -race ./...
 
-gen: clean
-	mockery --all --recursive --dir ./pkg --case underscore --with-expecter
+gen: clean sqlc
+	mockery
+
+sqlc:
+	sqlc generate
 
 clean:
 	rm -rf mocks

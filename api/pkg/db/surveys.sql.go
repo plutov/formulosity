@@ -50,3 +50,654 @@ func (q *Queries) CreateSurvey(ctx context.Context, arg CreateSurveyParams) (Sur
 	)
 	return i, err
 }
+
+const createSurveySession = `-- name: CreateSurveySession :one
+INSERT INTO surveys_sessions (status, survey_id, ip_addr)
+    VALUES ($1, (
+            SELECT
+                s.id
+            FROM
+                surveys s
+            WHERE
+                s.uuid = $2), $3)
+RETURNING
+    id,
+    uuid
+`
+
+type CreateSurveySessionParams struct {
+	Status NullSurveysSessionsStatus
+	Uuid   pgtype.UUID
+	IpAddr pgtype.Text
+}
+
+type CreateSurveySessionRow struct {
+	ID   int32
+	Uuid pgtype.UUID
+}
+
+func (q *Queries) CreateSurveySession(ctx context.Context, arg CreateSurveySessionParams) (CreateSurveySessionRow, error) {
+	row := q.db.QueryRow(ctx, createSurveySession, arg.Status, arg.Uuid, arg.IpAddr)
+	var i CreateSurveySessionRow
+	err := row.Scan(&i.ID, &i.Uuid)
+	return i, err
+}
+
+const deleteSurveyQuestionsNotInList = `-- name: DeleteSurveyQuestionsNotInList :exec
+DELETE FROM surveys_questions
+WHERE survey_id = $1
+    AND question_id != ALL ($2::text[])
+`
+
+type DeleteSurveyQuestionsNotInListParams struct {
+	SurveyID int32
+	Column2  []string
+}
+
+func (q *Queries) DeleteSurveyQuestionsNotInList(ctx context.Context, arg DeleteSurveyQuestionsNotInListParams) error {
+	_, err := q.db.Exec(ctx, deleteSurveyQuestionsNotInList, arg.SurveyID, arg.Column2)
+	return err
+}
+
+const deleteSurveySession = `-- name: DeleteSurveySession :exec
+DELETE FROM surveys_sessions
+WHERE uuid = $1
+`
+
+func (q *Queries) DeleteSurveySession(ctx context.Context, uuid pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteSurveySession, uuid)
+	return err
+}
+
+const getSurveyByURLSlug = `-- name: GetSurveyByURLSlug :one
+SELECT
+    s.id,
+    s.uuid,
+    s.created_at,
+    s.parse_status,
+    s.delivery_status,
+    s.error_log,
+    s.name,
+    s.config,
+    s.url_slug
+FROM
+    surveys AS s
+WHERE
+    s.url_slug = $1
+`
+
+type GetSurveyByURLSlugRow struct {
+	ID             int32
+	Uuid           pgtype.UUID
+	CreatedAt      pgtype.Timestamp
+	ParseStatus    NullSurveyParseStatuses
+	DeliveryStatus NullSurveyDeliveryStatuses
+	ErrorLog       pgtype.Text
+	Name           string
+	Config         []byte
+	UrlSlug        string
+}
+
+func (q *Queries) GetSurveyByURLSlug(ctx context.Context, urlSlug string) (GetSurveyByURLSlugRow, error) {
+	row := q.db.QueryRow(ctx, getSurveyByURLSlug, urlSlug)
+	var i GetSurveyByURLSlugRow
+	err := row.Scan(
+		&i.ID,
+		&i.Uuid,
+		&i.CreatedAt,
+		&i.ParseStatus,
+		&i.DeliveryStatus,
+		&i.ErrorLog,
+		&i.Name,
+		&i.Config,
+		&i.UrlSlug,
+	)
+	return i, err
+}
+
+const getSurveyByUUID = `-- name: GetSurveyByUUID :one
+SELECT
+    s.id,
+    s.uuid,
+    s.created_at,
+    s.parse_status,
+    s.delivery_status,
+    s.error_log,
+    s.name,
+    s.config,
+    s.url_slug
+FROM
+    surveys AS s
+WHERE
+    s.uuid = $1
+`
+
+type GetSurveyByUUIDRow struct {
+	ID             int32
+	Uuid           pgtype.UUID
+	CreatedAt      pgtype.Timestamp
+	ParseStatus    NullSurveyParseStatuses
+	DeliveryStatus NullSurveyDeliveryStatuses
+	ErrorLog       pgtype.Text
+	Name           string
+	Config         []byte
+	UrlSlug        string
+}
+
+func (q *Queries) GetSurveyByUUID(ctx context.Context, uuid pgtype.UUID) (GetSurveyByUUIDRow, error) {
+	row := q.db.QueryRow(ctx, getSurveyByUUID, uuid)
+	var i GetSurveyByUUIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.Uuid,
+		&i.CreatedAt,
+		&i.ParseStatus,
+		&i.DeliveryStatus,
+		&i.ErrorLog,
+		&i.Name,
+		&i.Config,
+		&i.UrlSlug,
+	)
+	return i, err
+}
+
+const getSurveyQuestions = `-- name: GetSurveyQuestions :many
+SELECT
+    sq.uuid,
+    sq.question_id
+FROM
+    surveys_questions sq
+WHERE
+    sq.survey_id = $1
+ORDER BY
+    sq.question_id
+`
+
+type GetSurveyQuestionsRow struct {
+	Uuid       pgtype.UUID
+	QuestionID string
+}
+
+func (q *Queries) GetSurveyQuestions(ctx context.Context, surveyID int32) ([]GetSurveyQuestionsRow, error) {
+	rows, err := q.db.Query(ctx, getSurveyQuestions, surveyID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetSurveyQuestionsRow
+	for rows.Next() {
+		var i GetSurveyQuestionsRow
+		if err := rows.Scan(&i.Uuid, &i.QuestionID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getSurveySession = `-- name: GetSurveySession :one
+SELECT
+    ss.id,
+    ss.uuid,
+    ss.created_at,
+    ss.status,
+    s.uuid AS survey_uuid
+FROM
+    surveys_sessions AS ss
+    INNER JOIN surveys AS s ON s.id = ss.survey_id
+WHERE
+    ss.uuid = $1
+    AND s.uuid = $2
+`
+
+type GetSurveySessionParams struct {
+	Uuid   pgtype.UUID
+	Uuid_2 pgtype.UUID
+}
+
+type GetSurveySessionRow struct {
+	ID         int32
+	Uuid       pgtype.UUID
+	CreatedAt  pgtype.Timestamp
+	Status     NullSurveysSessionsStatus
+	SurveyUuid pgtype.UUID
+}
+
+func (q *Queries) GetSurveySession(ctx context.Context, arg GetSurveySessionParams) (GetSurveySessionRow, error) {
+	row := q.db.QueryRow(ctx, getSurveySession, arg.Uuid, arg.Uuid_2)
+	var i GetSurveySessionRow
+	err := row.Scan(
+		&i.ID,
+		&i.Uuid,
+		&i.CreatedAt,
+		&i.Status,
+		&i.SurveyUuid,
+	)
+	return i, err
+}
+
+const getSurveySessionAnswers = `-- name: GetSurveySessionAnswers :many
+SELECT
+    q.question_id,
+    q.uuid AS question_uuid,
+    sa.answer
+FROM
+    surveys_answers AS sa
+    LEFT JOIN surveys_questions AS q ON q.id = sa.question_id
+WHERE
+    sa.session_id = (
+        SELECT
+            ss.id
+        FROM
+            surveys_sessions ss
+        WHERE
+            ss.uuid = $1)
+ORDER BY
+    q.question_id
+`
+
+type GetSurveySessionAnswersRow struct {
+	QuestionID   pgtype.Text
+	QuestionUuid pgtype.UUID
+	Answer       []byte
+}
+
+func (q *Queries) GetSurveySessionAnswers(ctx context.Context, uuid pgtype.UUID) ([]GetSurveySessionAnswersRow, error) {
+	rows, err := q.db.Query(ctx, getSurveySessionAnswers, uuid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetSurveySessionAnswersRow
+	for rows.Next() {
+		var i GetSurveySessionAnswersRow
+		if err := rows.Scan(&i.QuestionID, &i.QuestionUuid, &i.Answer); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getSurveySessionByIPAddress = `-- name: GetSurveySessionByIPAddress :one
+SELECT
+    ss.id,
+    ss.uuid,
+    ss.created_at,
+    ss.status,
+    s.uuid AS survey_uuid
+FROM
+    surveys_sessions AS ss
+    INNER JOIN surveys AS s ON s.id = ss.survey_id
+WHERE
+    s.uuid = $1
+    AND ss.ip_addr = $2
+`
+
+type GetSurveySessionByIPAddressParams struct {
+	Uuid   pgtype.UUID
+	IpAddr pgtype.Text
+}
+
+type GetSurveySessionByIPAddressRow struct {
+	ID         int32
+	Uuid       pgtype.UUID
+	CreatedAt  pgtype.Timestamp
+	Status     NullSurveysSessionsStatus
+	SurveyUuid pgtype.UUID
+}
+
+func (q *Queries) GetSurveySessionByIPAddress(ctx context.Context, arg GetSurveySessionByIPAddressParams) (GetSurveySessionByIPAddressRow, error) {
+	row := q.db.QueryRow(ctx, getSurveySessionByIPAddress, arg.Uuid, arg.IpAddr)
+	var i GetSurveySessionByIPAddressRow
+	err := row.Scan(
+		&i.ID,
+		&i.Uuid,
+		&i.CreatedAt,
+		&i.Status,
+		&i.SurveyUuid,
+	)
+	return i, err
+}
+
+const getSurveySessionsCount = `-- name: GetSurveySessionsCount :one
+SELECT
+    COUNT(*)
+FROM
+    surveys_sessions AS ss
+    INNER JOIN surveys AS s ON s.id = ss.survey_id
+WHERE
+    s.uuid = $1
+`
+
+func (q *Queries) GetSurveySessionsCount(ctx context.Context, uuid pgtype.UUID) (int64, error) {
+	row := q.db.QueryRow(ctx, getSurveySessionsCount, uuid)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const getSurveySessionsWithAnswers = `-- name: GetSurveySessionsWithAnswers :many
+WITH limited_sessions AS (
+    SELECT
+        ss.id, ss.uuid, ss.created_at, ss.completed_at, ss.status, ss.survey_id, ss.ip_addr
+    FROM
+        surveys_sessions ss
+    WHERE
+        ss.survey_id = (
+            SELECT
+                s.id
+            FROM
+                surveys s
+            WHERE
+                s.uuid = $1)
+        ORDER BY
+            ss.created_at DESC
+        LIMIT $2 OFFSET $3
+)
+SELECT
+    ss.id,
+    ss.uuid,
+    ss.created_at,
+    ss.completed_at,
+    ss.status,
+    q.question_id,
+    q.uuid AS question_uuid,
+    sa.answer,
+    w.response_status,
+    w.response
+FROM
+    limited_sessions AS ss
+    LEFT JOIN surveys_answers AS sa ON sa.session_id = ss.id
+    LEFT JOIN surveys_questions AS q ON q.id = sa.question_id
+    LEFT JOIN surveys_webhook_responses AS w ON w.session_id = ss.id
+ORDER BY
+    ss.created_at DESC
+`
+
+type GetSurveySessionsWithAnswersParams struct {
+	Uuid   pgtype.UUID
+	Limit  int32
+	Offset int32
+}
+
+type GetSurveySessionsWithAnswersRow struct {
+	ID             int32
+	Uuid           pgtype.UUID
+	CreatedAt      pgtype.Timestamp
+	CompletedAt    pgtype.Timestamp
+	Status         NullSurveysSessionsStatus
+	QuestionID     pgtype.Text
+	QuestionUuid   pgtype.UUID
+	Answer         []byte
+	ResponseStatus pgtype.Int4
+	Response       pgtype.Text
+}
+
+func (q *Queries) GetSurveySessionsWithAnswers(ctx context.Context, arg GetSurveySessionsWithAnswersParams) ([]GetSurveySessionsWithAnswersRow, error) {
+	rows, err := q.db.Query(ctx, getSurveySessionsWithAnswers, arg.Uuid, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetSurveySessionsWithAnswersRow
+	for rows.Next() {
+		var i GetSurveySessionsWithAnswersRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Uuid,
+			&i.CreatedAt,
+			&i.CompletedAt,
+			&i.Status,
+			&i.QuestionID,
+			&i.QuestionUuid,
+			&i.Answer,
+			&i.ResponseStatus,
+			&i.Response,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getSurveys = `-- name: GetSurveys :many
+SELECT
+    s.id,
+    s.uuid,
+    s.created_at,
+    s.parse_status,
+    s.delivery_status,
+    s.error_log,
+    s.name,
+    s.config,
+    s.url_slug,
+    (
+        SELECT
+            COUNT(*)
+        FROM
+            surveys_sessions ss
+        WHERE
+            ss.survey_id = s.id
+            AND ss.status = $1) AS sessions_count_in_progress,
+    (
+        SELECT
+            COUNT(*)
+        FROM
+            surveys_sessions ss
+        WHERE
+            ss.survey_id = s.id
+            AND ss.status = $2) AS sessions_count_completed
+FROM
+    surveys AS s
+ORDER BY
+    s.created_at DESC
+`
+
+type GetSurveysParams struct {
+	Status   NullSurveysSessionsStatus
+	Status_2 NullSurveysSessionsStatus
+}
+
+type GetSurveysRow struct {
+	ID                      int32
+	Uuid                    pgtype.UUID
+	CreatedAt               pgtype.Timestamp
+	ParseStatus             NullSurveyParseStatuses
+	DeliveryStatus          NullSurveyDeliveryStatuses
+	ErrorLog                pgtype.Text
+	Name                    string
+	Config                  []byte
+	UrlSlug                 string
+	SessionsCountInProgress int64
+	SessionsCountCompleted  int64
+}
+
+func (q *Queries) GetSurveys(ctx context.Context, arg GetSurveysParams) ([]GetSurveysRow, error) {
+	rows, err := q.db.Query(ctx, getSurveys, arg.Status, arg.Status_2)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetSurveysRow
+	for rows.Next() {
+		var i GetSurveysRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Uuid,
+			&i.CreatedAt,
+			&i.ParseStatus,
+			&i.DeliveryStatus,
+			&i.ErrorLog,
+			&i.Name,
+			&i.Config,
+			&i.UrlSlug,
+			&i.SessionsCountInProgress,
+			&i.SessionsCountCompleted,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const storeWebhookResponse = `-- name: StoreWebhookResponse :exec
+INSERT INTO surveys_webhook_responses (created_at, session_id, response_status, response)
+    VALUES ($1, $2, $3, $4)
+`
+
+type StoreWebhookResponseParams struct {
+	CreatedAt      pgtype.Timestamp
+	SessionID      int32
+	ResponseStatus int32
+	Response       pgtype.Text
+}
+
+func (q *Queries) StoreWebhookResponse(ctx context.Context, arg StoreWebhookResponseParams) error {
+	_, err := q.db.Exec(ctx, storeWebhookResponse,
+		arg.CreatedAt,
+		arg.SessionID,
+		arg.ResponseStatus,
+		arg.Response,
+	)
+	return err
+}
+
+const updateSurvey = `-- name: UpdateSurvey :exec
+UPDATE
+    surveys
+SET
+    parse_status = $1,
+    delivery_status = $2,
+    error_log = $3,
+    name = $4,
+    config = $5,
+    url_slug = $6
+WHERE
+    uuid = $7
+`
+
+type UpdateSurveyParams struct {
+	ParseStatus    NullSurveyParseStatuses
+	DeliveryStatus NullSurveyDeliveryStatuses
+	ErrorLog       pgtype.Text
+	Name           string
+	Config         []byte
+	UrlSlug        string
+	Uuid           pgtype.UUID
+}
+
+func (q *Queries) UpdateSurvey(ctx context.Context, arg UpdateSurveyParams) error {
+	_, err := q.db.Exec(ctx, updateSurvey,
+		arg.ParseStatus,
+		arg.DeliveryStatus,
+		arg.ErrorLog,
+		arg.Name,
+		arg.Config,
+		arg.UrlSlug,
+		arg.Uuid,
+	)
+	return err
+}
+
+const updateSurveySessionStatus = `-- name: UpdateSurveySessionStatus :exec
+UPDATE
+    surveys_sessions
+SET
+    status = $1
+WHERE
+    uuid = $2
+`
+
+type UpdateSurveySessionStatusParams struct {
+	Status NullSurveysSessionsStatus
+	Uuid   pgtype.UUID
+}
+
+func (q *Queries) UpdateSurveySessionStatus(ctx context.Context, arg UpdateSurveySessionStatusParams) error {
+	_, err := q.db.Exec(ctx, updateSurveySessionStatus, arg.Status, arg.Uuid)
+	return err
+}
+
+const updateSurveySessionStatusCompleted = `-- name: UpdateSurveySessionStatusCompleted :exec
+UPDATE
+    surveys_sessions
+SET
+    status = $1,
+    completed_at = NOW()
+WHERE
+    uuid = $2
+`
+
+type UpdateSurveySessionStatusCompletedParams struct {
+	Status NullSurveysSessionsStatus
+	Uuid   pgtype.UUID
+}
+
+func (q *Queries) UpdateSurveySessionStatusCompleted(ctx context.Context, arg UpdateSurveySessionStatusCompletedParams) error {
+	_, err := q.db.Exec(ctx, updateSurveySessionStatusCompleted, arg.Status, arg.Uuid)
+	return err
+}
+
+const upsertSurveyQuestion = `-- name: UpsertSurveyQuestion :exec
+INSERT INTO surveys_questions (survey_id, question_id)
+    VALUES ($1, $2)
+ON CONFLICT (survey_id, question_id)
+    DO NOTHING
+`
+
+type UpsertSurveyQuestionParams struct {
+	SurveyID   int32
+	QuestionID string
+}
+
+func (q *Queries) UpsertSurveyQuestion(ctx context.Context, arg UpsertSurveyQuestionParams) error {
+	_, err := q.db.Exec(ctx, upsertSurveyQuestion, arg.SurveyID, arg.QuestionID)
+	return err
+}
+
+const upsertSurveyQuestionAnswer = `-- name: UpsertSurveyQuestionAnswer :exec
+INSERT INTO surveys_answers (session_id, question_id, answer)
+    VALUES ((
+            SELECT
+                ss.id
+            FROM
+                surveys_sessions ss
+            WHERE
+                ss.uuid = $1), (
+                SELECT
+                    sq.id
+                FROM
+                    surveys_questions sq
+                WHERE
+                    sq.uuid = $2), $3)
+    ON CONFLICT (session_id,
+        question_id)
+    DO UPDATE SET
+        answer = EXCLUDED.answer
+`
+
+type UpsertSurveyQuestionAnswerParams struct {
+	Uuid   pgtype.UUID
+	Uuid_2 pgtype.UUID
+	Answer []byte
+}
+
+func (q *Queries) UpsertSurveyQuestionAnswer(ctx context.Context, arg UpsertSurveyQuestionAnswerParams) error {
+	_, err := q.db.Exec(ctx, upsertSurveyQuestionAnswer, arg.Uuid, arg.Uuid_2, arg.Answer)
+	return err
+}

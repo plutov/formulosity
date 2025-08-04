@@ -285,9 +285,9 @@ And you should be able to access the UI on [localhost:3000](http://localhost:300
 
 You can deploy individual services to any cloud provider or self host them.
 
-- Go backend. It's packaged as a Docker container and can be deployed anywhere.
-- Next.js frontend. It's also packaged as a Docker container, but also can be deployed to Vercel for example.
-- Postgres database. You can use managed Postgres services or deploy it yourself.
+- Go backend.
+- Next.js frontend.
+- Postgres database.
 
 ### Environment Variables
 

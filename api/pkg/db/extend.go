@@ -22,3 +22,9 @@ func EncodeUUID(uuid pgtype.UUID) string {
 
 	return string(buf[:])
 }
+
+func DecodeUUID(uuidStr string) (pgtype.UUID, error) {
+	var uuid pgtype.UUID
+	err := uuid.Scan(uuidStr)
+	return uuid, err
+}
