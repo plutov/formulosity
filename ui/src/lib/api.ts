@@ -5,7 +5,8 @@ export async function call(path: string, init?: RequestInit, host?: string) {
 		}
 
 		if (!host) {
-			host = process.env.CONSOLE_API_ADDR_INTERNAL
+			// Use environment variable or fallback to current origin
+			host = import.meta.env.VITE_API_URL || window.location.origin
 		}
 
 		console.log('calling', `${host}${path}`)
@@ -138,11 +139,11 @@ export async function getSurvey(host: string, urlSlug: string) {
 	return await call(`/surveys/${urlSlug}`, {
 		method: 'GET',
 		headers: headers,
-	})
+	}, import.meta.env.VITE_API_URL)
 }
 
 export async function getSurveys() {
-	return await get(`/app/surveys`)
+	return await get(`/app/surveys`, import.meta.env.VITE_API_URL)
 }
 
 export async function createSurveySession(

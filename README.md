@@ -285,9 +285,9 @@ And you should be able to access the UI on [localhost:3000](http://localhost:300
 
 You can deploy individual services to any cloud provider or self host them.
 
-- Go backend.
-- Next.js frontend.
-- Postgres database.
+- Go backend
+- React Router UI
+- Postgres database
 
 ### Environment Variables
 

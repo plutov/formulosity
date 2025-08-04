@@ -16,26 +16,18 @@ ENV NODE_ENV=production
 
 RUN npm run build
 
-FROM base AS runner
-WORKDIR /app
+FROM nginx:alpine AS runner
+WORKDIR /usr/share/nginx/html
 
-ENV NODE_ENV=production
+# Remove default nginx static assets
+RUN rm -rf ./*
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+# Copy static assets from builder stage
+COPY --from=builder /app/dist .
 
-COPY --from=builder /app/public ./public
+# Copy nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
 
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
+EXPOSE 80
 
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-USER nextjs
-
-EXPOSE 3000
-
-ENV PORT=3000
-
-CMD ["node", "server.js"]
+CMD ["nginx", "-g", "daemon off;"]
