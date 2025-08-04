@@ -6,6 +6,7 @@ ui/node_modules
 ui/.next/
 ui/out/
 ui/build
+ui/dist
 ui/npm-debug.log*
 ui/yarn-debug.log*
 ui/yarn-error.log*

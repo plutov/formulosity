@@ -15,7 +15,7 @@ import {
   TextInput,
   Textarea,
   Datepicker,
-  FileInput
+  FileInput,
 } from 'flowbite-react'
 import { HiArrowSmRight, HiSelector } from 'react-icons/hi'
 import { ErrCode } from 'components/ui/ErrCode'
@@ -231,7 +231,7 @@ export default function SurveyQuestions({
         />
       )
       break
-    case SurveyQuestionType.Rating:
+    case SurveyQuestionType.Rating: {
       const numbers = []
       if (currentQuestion.max && currentQuestion.min) {
         for (let i = currentQuestion.min; i <= currentQuestion.max; i++) {
@@ -260,6 +260,7 @@ export default function SurveyQuestions({
         </Button.Group>
       )
       break
+    }
     case SurveyQuestionType.Ranking:
       if (sortableItems.length === 0) {
         setSortableItems(
@@ -369,12 +370,12 @@ export default function SurveyQuestions({
         }
         break
       case SurveyQuestionType.File: {
-        const formData = new FormData();
+        const formData = new FormData()
         if (selectedFile) {
-          formData.append('file', selectedFile);
+          formData.append('file', selectedFile)
         }
-        payload = formData;
-        break;
+        payload = formData
+        break
       }
     }
 
@@ -425,11 +426,12 @@ export default function SurveyQuestions({
       case SurveyQuestionType.MultipleChoice:
         setSelectedArrayValue(question.answer.value as string[])
         break
-      case SurveyQuestionType.Rating:
+      case SurveyQuestionType.Rating: {
         const ratingInt = question.answer.value as number
         setSelectedStringValue(ratingInt.toString())
         break
-      case SurveyQuestionType.Ranking:
+      }
+      case SurveyQuestionType.Ranking: {
         const rankingArray = question.answer.value as string[]
         setSortableItems(
           rankingArray.map((item, index) => {
@@ -440,11 +442,14 @@ export default function SurveyQuestions({
           })
         )
         break
-      case SurveyQuestionType.YesNo:
+      }
+      case SurveyQuestionType.YesNo: {
         const yesNoBool = question.answer.value as boolean
         setSelectedStringValue(yesNoBool ? 'yes' : 'no')
         break
+      }
       case SurveyQuestionType.File:
+        break
     }
   }
 
@@ -462,11 +467,15 @@ export default function SurveyQuestions({
           {currentQuestion.description && (
             <p className="caption">{currentQuestion.description}</p>
           )}
-          <form className="form" onSubmit={async (e) => {
-            e.preventDefault()
-            await submitAnswer()
-          }}>
-            {questionContent}</form>
+          <form
+            className="form"
+            onSubmit={async (e) => {
+              e.preventDefault()
+              await submitAnswer()
+            }}
+          >
+            {questionContent}
+          </form>
           <div className="w-full flex justify-center mt-8">
             <Button
               className="next-question"

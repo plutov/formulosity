@@ -316,7 +316,7 @@ npm run dev
 ## Tech Stack
 
 - Backend: Go, Postgres
-- UI: Next.js, Tailwind CSS
+- UI: React Router, Tailwind CSS
 
 ## Create new Postgres migration
 

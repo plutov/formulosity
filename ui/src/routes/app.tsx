@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router'
 
 import AppLayout from 'components/app/AppLayout'
 import { SurveysPage } from 'components/app/SurveysPage'
@@ -10,11 +9,10 @@ export default function AppPage() {
   const [surveys, setSurveys] = useState([])
   const [errMsg, setErrMsg] = useState('')
   const [loading, setLoading] = useState(true)
-  const navigate = useNavigate()
 
   useEffect(() => {
     document.title = 'Formulosity | App'
-    
+
     async function fetchSurveys() {
       try {
         const surveysResp = await getSurveys()
