@@ -443,58 +443,58 @@ func (p *Postgres) UpsertSurveyQuestionAnswer(sessionUUID string, questionUUID s
 }
 
 func (p *Postgres) GetSurveySessionsWithAnswers(surveyUUID string, filter *types.SurveySessionsFilter) ([]types.SurveySession, int, error) {
-	query := fmt.Sprintf(`WITH limited_sessions AS (
-		SELECT * from surveys_sessions
-		ORDER BY %s %s
-		LIMIT %d OFFSET %d
-	)
-	SELECT
-		ss.id, ss.uuid, ss.created_at, ss.completed_at, ss.status, q.id, q.uuid, sa.answer, w.response_status, w.response
-	FROM limited_sessions AS ss
-	INNER JOIN surveys AS s ON s.id = ss.survey_id
-	LEFT JOIN surveys_answers AS sa ON sa.session_id = ss.id
-	LEFT JOIN surveys_questions AS q ON q.id = sa.question_id
-	LEFT JOIN surveys_webhook_responses AS w ON w.session_id = ss.id
-	WHERE s.uuid=$1
-	ORDER BY ss.%s %s
-	;`, filter.SortBy, filter.Order, filter.Limit, filter.Offset, filter.SortBy, filter.Order)
+	surveyUUIDPg, err := db.DecodeUUID(surveyUUID)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to decode survey UUID: %w", err)
+	}
 
-	rows, err := p.conn.Query(p.ctx, query, surveyUUID)
+	rows, err := p.queries.GetSurveySessionsWithAnswers(p.ctx, db.GetSurveySessionsWithAnswersParams{
+		Uuid:   surveyUUIDPg,
+		Limit:  int32(filter.Limit),
+		Offset: int32(filter.Offset),
+	})
 	if err != nil {
 		return nil, 0, err
 	}
 
 	sessions := []types.SurveySession{}
 	sessionsMap := map[string]types.SurveySession{}
-	for rows.Next() {
-		session := types.SurveySession{}
-		webhookData := types.WebhookData{}
-		answer := types.QuestionAnswer{}
-		var (
-			questionID   sql.NullString
-			questionUUID sql.NullString
-		)
 
-		err := rows.Scan(&session.ID, &session.UUID, &session.CreatedAt, &session.CompletedAt, &session.Status, &questionID, &questionUUID, &answer.AnswerBytes, &webhookData.StatusCode, &webhookData.Response)
-		if err != nil {
-			return nil, 0, err
-		}
+	for _, row := range rows {
+		sessionUUID := db.EncodeUUID(row.Uuid)
 
-		session.WebhookData = webhookData
+		if _, ok := sessionsMap[sessionUUID]; !ok {
+			var completedAt *time.Time
+			if row.CompletedAt.Valid {
+				completedAt = &row.CompletedAt.Time
+			}
 
-		if _, ok := sessionsMap[session.UUID]; !ok {
-			session.QuestionAnswers = []types.QuestionAnswer{}
-			sessionsMap[session.UUID] = session
+			session := types.SurveySession{
+				ID:              int64(row.ID),
+				UUID:            sessionUUID,
+				CreatedAt:       row.CreatedAt.Time,
+				CompletedAt:     completedAt,
+				Status:          types.SurveySessionStatus(row.Status.SurveysSessionsStatus),
+				QuestionAnswers: []types.QuestionAnswer{},
+				WebhookData: types.WebhookData{
+					StatusCode: int16(row.ResponseStatus.Int32),
+					Response:   row.Response.String,
+				},
+			}
+			sessionsMap[sessionUUID] = session
 			sessions = append(sessions, session)
 		}
 
-		if questionID.Valid && questionUUID.Valid {
-			answer.QuestionID = questionID.String
-			answer.QuestionUUID = questionUUID.String
+		if row.QuestionID.Valid && row.QuestionUuid.Valid {
+			answer := types.QuestionAnswer{
+				QuestionID:   row.QuestionID.String,
+				QuestionUUID: db.EncodeUUID(row.QuestionUuid),
+				AnswerBytes:  row.Answer,
+			}
 
-			sessionCopy := sessionsMap[session.UUID]
+			sessionCopy := sessionsMap[sessionUUID]
 			sessionCopy.QuestionAnswers = append(sessionCopy.QuestionAnswers, answer)
-			sessionsMap[session.UUID] = sessionCopy
+			sessionsMap[sessionUUID] = sessionCopy
 		}
 	}
 
@@ -506,6 +506,7 @@ func (p *Postgres) GetSurveySessionsWithAnswers(surveyUUID string, filter *types
 	for i, session := range sessions {
 		fullSession := sessionsMap[session.UUID]
 		sessions[i].QuestionAnswers = fullSession.QuestionAnswers
+		sessions[i].WebhookData = fullSession.WebhookData
 	}
 
 	return sessions, totalCount, nil

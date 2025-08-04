@@ -52,10 +52,17 @@ func (q *Queries) CreateSurvey(ctx context.Context, arg CreateSurveyParams) (Sur
 }
 
 const createSurveySession = `-- name: CreateSurveySession :one
-INSERT INTO surveys_sessions
-    (status, survey_id, ip_addr)
-    VALUES ($1, (SELECT s.id FROM surveys s WHERE s.uuid = $2), $3)
-    RETURNING id, uuid
+INSERT INTO surveys_sessions (status, survey_id, ip_addr)
+    VALUES ($1, (
+            SELECT
+                s.id
+            FROM
+                surveys s
+            WHERE
+                s.uuid = $2), $3)
+RETURNING
+    id,
+    uuid
 `
 
 type CreateSurveySessionParams struct {
@@ -78,8 +85,8 @@ func (q *Queries) CreateSurveySession(ctx context.Context, arg CreateSurveySessi
 
 const deleteSurveyQuestionsNotInList = `-- name: DeleteSurveyQuestionsNotInList :exec
 DELETE FROM surveys_questions
-WHERE survey_id=$1
-AND question_id != ALL($2::text[])
+WHERE survey_id = $1
+    AND question_id != ALL ($2::text[])
 `
 
 type DeleteSurveyQuestionsNotInListParams struct {
@@ -93,9 +100,8 @@ func (q *Queries) DeleteSurveyQuestionsNotInList(ctx context.Context, arg Delete
 }
 
 const deleteSurveySession = `-- name: DeleteSurveySession :exec
-DELETE
-FROM surveys_sessions
-WHERE uuid=$1
+DELETE FROM surveys_sessions
+WHERE uuid = $1
 `
 
 func (q *Queries) DeleteSurveySession(ctx context.Context, uuid pgtype.UUID) error {
@@ -105,11 +111,19 @@ func (q *Queries) DeleteSurveySession(ctx context.Context, uuid pgtype.UUID) err
 
 const getSurveyByURLSlug = `-- name: GetSurveyByURLSlug :one
 SELECT
-    s.id, s.uuid, s.created_at,
-    s.parse_status, s.delivery_status,
-    s.error_log, s.name, s.config, s.url_slug
-FROM surveys AS s
-WHERE s.url_slug=$1
+    s.id,
+    s.uuid,
+    s.created_at,
+    s.parse_status,
+    s.delivery_status,
+    s.error_log,
+    s.name,
+    s.config,
+    s.url_slug
+FROM
+    surveys AS s
+WHERE
+    s.url_slug = $1
 `
 
 type GetSurveyByURLSlugRow struct {
@@ -143,11 +157,19 @@ func (q *Queries) GetSurveyByURLSlug(ctx context.Context, urlSlug string) (GetSu
 
 const getSurveyByUUID = `-- name: GetSurveyByUUID :one
 SELECT
-    s.id, s.uuid, s.created_at,
-    s.parse_status, s.delivery_status,
-    s.error_log, s.name, s.config, s.url_slug
-FROM surveys AS s
-WHERE s.uuid=$1
+    s.id,
+    s.uuid,
+    s.created_at,
+    s.parse_status,
+    s.delivery_status,
+    s.error_log,
+    s.name,
+    s.config,
+    s.url_slug
+FROM
+    surveys AS s
+WHERE
+    s.uuid = $1
 `
 
 type GetSurveyByUUIDRow struct {
@@ -181,9 +203,14 @@ func (q *Queries) GetSurveyByUUID(ctx context.Context, uuid pgtype.UUID) (GetSur
 
 const getSurveyQuestions = `-- name: GetSurveyQuestions :many
 SELECT
-    sq.uuid, sq.question_id
-FROM surveys_questions sq
-WHERE sq.survey_id=$1
+    sq.uuid,
+    sq.question_id
+FROM
+    surveys_questions sq
+WHERE
+    sq.survey_id = $1
+ORDER BY
+    sq.question_id
 `
 
 type GetSurveyQuestionsRow struct {
@@ -213,10 +240,17 @@ func (q *Queries) GetSurveyQuestions(ctx context.Context, surveyID int32) ([]Get
 
 const getSurveySession = `-- name: GetSurveySession :one
 SELECT
-    ss.id, ss.uuid, ss.created_at, ss.status, s.uuid as survey_uuid
-FROM surveys_sessions AS ss
-INNER JOIN surveys AS s ON s.id = ss.survey_id
-WHERE ss.uuid=$1 AND s.uuid=$2
+    ss.id,
+    ss.uuid,
+    ss.created_at,
+    ss.status,
+    s.uuid AS survey_uuid
+FROM
+    surveys_sessions AS ss
+    INNER JOIN surveys AS s ON s.id = ss.survey_id
+WHERE
+    ss.uuid = $1
+    AND s.uuid = $2
 `
 
 type GetSurveySessionParams struct {
@@ -247,10 +281,22 @@ func (q *Queries) GetSurveySession(ctx context.Context, arg GetSurveySessionPara
 
 const getSurveySessionAnswers = `-- name: GetSurveySessionAnswers :many
 SELECT
-    q.question_id, q.uuid as question_uuid, sa.answer
-FROM surveys_answers AS sa
-LEFT JOIN surveys_questions AS q ON q.id = sa.question_id
-WHERE sa.session_id = (SELECT ss.id FROM surveys_sessions ss WHERE ss.uuid = $1)
+    q.question_id,
+    q.uuid AS question_uuid,
+    sa.answer
+FROM
+    surveys_answers AS sa
+    LEFT JOIN surveys_questions AS q ON q.id = sa.question_id
+WHERE
+    sa.session_id = (
+        SELECT
+            ss.id
+        FROM
+            surveys_sessions ss
+        WHERE
+            ss.uuid = $1)
+ORDER BY
+    q.question_id
 `
 
 type GetSurveySessionAnswersRow struct {
@@ -281,10 +327,17 @@ func (q *Queries) GetSurveySessionAnswers(ctx context.Context, uuid pgtype.UUID)
 
 const getSurveySessionByIPAddress = `-- name: GetSurveySessionByIPAddress :one
 SELECT
-    ss.id, ss.uuid, ss.created_at, ss.status, s.uuid as survey_uuid
-FROM surveys_sessions AS ss
-INNER JOIN surveys AS s ON s.id = ss.survey_id
-WHERE s.uuid=$1 AND ss.ip_addr=$2
+    ss.id,
+    ss.uuid,
+    ss.created_at,
+    ss.status,
+    s.uuid AS survey_uuid
+FROM
+    surveys_sessions AS ss
+    INNER JOIN surveys AS s ON s.id = ss.survey_id
+WHERE
+    s.uuid = $1
+    AND ss.ip_addr = $2
 `
 
 type GetSurveySessionByIPAddressParams struct {
@@ -316,9 +369,11 @@ func (q *Queries) GetSurveySessionByIPAddress(ctx context.Context, arg GetSurvey
 const getSurveySessionsCount = `-- name: GetSurveySessionsCount :one
 SELECT
     COUNT(*)
-FROM surveys_sessions AS ss
-INNER JOIN surveys AS s ON s.id = ss.survey_id
-WHERE s.uuid=$1
+FROM
+    surveys_sessions AS ss
+    INNER JOIN surveys AS s ON s.id = ss.survey_id
+WHERE
+    s.uuid = $1
 `
 
 func (q *Queries) GetSurveySessionsCount(ctx context.Context, uuid pgtype.UUID) (int64, error) {
@@ -330,18 +385,40 @@ func (q *Queries) GetSurveySessionsCount(ctx context.Context, uuid pgtype.UUID) 
 
 const getSurveySessionsWithAnswers = `-- name: GetSurveySessionsWithAnswers :many
 WITH limited_sessions AS (
-    SELECT ss.id, ss.uuid, ss.created_at, ss.completed_at, ss.status, ss.survey_id, ss.ip_addr from surveys_sessions ss
-    WHERE ss.survey_id = (SELECT s.id FROM surveys s WHERE s.uuid = $1)
-    ORDER BY ss.created_at DESC
-    LIMIT $2 OFFSET $3
+    SELECT
+        ss.id, ss.uuid, ss.created_at, ss.completed_at, ss.status, ss.survey_id, ss.ip_addr
+    FROM
+        surveys_sessions ss
+    WHERE
+        ss.survey_id = (
+            SELECT
+                s.id
+            FROM
+                surveys s
+            WHERE
+                s.uuid = $1)
+        ORDER BY
+            ss.created_at DESC
+        LIMIT $2 OFFSET $3
 )
 SELECT
-    ss.id, ss.uuid, ss.created_at, ss.completed_at, ss.status, q.question_id, q.uuid as question_uuid, sa.answer, w.response_status, w.response
-FROM limited_sessions AS ss
-LEFT JOIN surveys_answers AS sa ON sa.session_id = ss.id
-LEFT JOIN surveys_questions AS q ON q.id = sa.question_id
-LEFT JOIN surveys_webhook_responses AS w ON w.session_id = ss.id
-ORDER BY ss.created_at DESC
+    ss.id,
+    ss.uuid,
+    ss.created_at,
+    ss.completed_at,
+    ss.status,
+    q.question_id,
+    q.uuid AS question_uuid,
+    sa.answer,
+    w.response_status,
+    w.response
+FROM
+    limited_sessions AS ss
+    LEFT JOIN surveys_answers AS sa ON sa.session_id = ss.id
+    LEFT JOIN surveys_questions AS q ON q.id = sa.question_id
+    LEFT JOIN surveys_webhook_responses AS w ON w.session_id = ss.id
+ORDER BY
+    ss.created_at DESC
 `
 
 type GetSurveySessionsWithAnswersParams struct {
@@ -396,12 +473,35 @@ func (q *Queries) GetSurveySessionsWithAnswers(ctx context.Context, arg GetSurve
 
 const getSurveys = `-- name: GetSurveys :many
 SELECT
-    s.id, s.uuid, s.created_at,
-    s.parse_status, s.delivery_status,
-    s.error_log, s.name, s.config, s.url_slug,
-    (SELECT COUNT(*) FROM surveys_sessions ss WHERE ss.survey_id = s.id AND ss.status = $1) AS sessions_count_in_progress,
-    (SELECT COUNT(*) FROM surveys_sessions ss WHERE ss.survey_id = s.id AND ss.status = $2) AS sessions_count_completed
-FROM surveys AS s
+    s.id,
+    s.uuid,
+    s.created_at,
+    s.parse_status,
+    s.delivery_status,
+    s.error_log,
+    s.name,
+    s.config,
+    s.url_slug,
+    (
+        SELECT
+            COUNT(*)
+        FROM
+            surveys_sessions ss
+        WHERE
+            ss.survey_id = s.id
+            AND ss.status = $1) AS sessions_count_in_progress,
+    (
+        SELECT
+            COUNT(*)
+        FROM
+            surveys_sessions ss
+        WHERE
+            ss.survey_id = s.id
+            AND ss.status = $2) AS sessions_count_completed
+FROM
+    surveys AS s
+ORDER BY
+    s.created_at DESC
 `
 
 type GetSurveysParams struct {
@@ -456,8 +556,7 @@ func (q *Queries) GetSurveys(ctx context.Context, arg GetSurveysParams) ([]GetSu
 }
 
 const storeWebhookResponse = `-- name: StoreWebhookResponse :exec
-INSERT INTO surveys_webhook_responses
-    (created_at, session_id, response_status, response)
+INSERT INTO surveys_webhook_responses (created_at, session_id, response_status, response)
     VALUES ($1, $2, $3, $4)
 `
 
@@ -479,9 +578,17 @@ func (q *Queries) StoreWebhookResponse(ctx context.Context, arg StoreWebhookResp
 }
 
 const updateSurvey = `-- name: UpdateSurvey :exec
-UPDATE surveys
-SET parse_status=$1, delivery_status=$2, error_log=$3, name=$4, config=$5, url_slug=$6
-WHERE uuid=$7
+UPDATE
+    surveys
+SET
+    parse_status = $1,
+    delivery_status = $2,
+    error_log = $3,
+    name = $4,
+    config = $5,
+    url_slug = $6
+WHERE
+    uuid = $7
 `
 
 type UpdateSurveyParams struct {
@@ -508,9 +615,12 @@ func (q *Queries) UpdateSurvey(ctx context.Context, arg UpdateSurveyParams) erro
 }
 
 const updateSurveySessionStatus = `-- name: UpdateSurveySessionStatus :exec
-UPDATE surveys_sessions
-SET status = $1
-WHERE uuid = $2
+UPDATE
+    surveys_sessions
+SET
+    status = $1
+WHERE
+    uuid = $2
 `
 
 type UpdateSurveySessionStatusParams struct {
@@ -524,9 +634,13 @@ func (q *Queries) UpdateSurveySessionStatus(ctx context.Context, arg UpdateSurve
 }
 
 const updateSurveySessionStatusCompleted = `-- name: UpdateSurveySessionStatusCompleted :exec
-UPDATE surveys_sessions
-SET status = $1, completed_at = NOW()
-WHERE uuid = $2
+UPDATE
+    surveys_sessions
+SET
+    status = $1,
+    completed_at = NOW()
+WHERE
+    uuid = $2
 `
 
 type UpdateSurveySessionStatusCompletedParams struct {
@@ -540,11 +654,10 @@ func (q *Queries) UpdateSurveySessionStatusCompleted(ctx context.Context, arg Up
 }
 
 const upsertSurveyQuestion = `-- name: UpsertSurveyQuestion :exec
-INSERT INTO surveys_questions
-(survey_id, question_id)
-VALUES ($1, $2)
+INSERT INTO surveys_questions (survey_id, question_id)
+    VALUES ($1, $2)
 ON CONFLICT (survey_id, question_id)
-DO NOTHING
+    DO NOTHING
 `
 
 type UpsertSurveyQuestionParams struct {
@@ -558,15 +671,24 @@ func (q *Queries) UpsertSurveyQuestion(ctx context.Context, arg UpsertSurveyQues
 }
 
 const upsertSurveyQuestionAnswer = `-- name: UpsertSurveyQuestionAnswer :exec
-INSERT INTO surveys_answers
-    (session_id, question_id, answer)
-    VALUES (
-        (SELECT ss.id FROM surveys_sessions ss WHERE ss.uuid = $1),
-        (SELECT sq.id FROM surveys_questions sq WHERE sq.uuid = $2),
-        $3
-    )
-    ON CONFLICT (session_id, question_id)
-    DO UPDATE SET answer = EXCLUDED.answer
+INSERT INTO surveys_answers (session_id, question_id, answer)
+    VALUES ((
+            SELECT
+                ss.id
+            FROM
+                surveys_sessions ss
+            WHERE
+                ss.uuid = $1), (
+                SELECT
+                    sq.id
+                FROM
+                    surveys_questions sq
+                WHERE
+                    sq.uuid = $2), $3)
+    ON CONFLICT (session_id,
+        question_id)
+    DO UPDATE SET
+        answer = EXCLUDED.answer
 `
 
 type UpsertSurveyQuestionAnswerParams struct {

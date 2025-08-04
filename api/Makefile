@@ -5,8 +5,11 @@ lint:
 test:
 	go test -v -bench=. -race ./...
 
-gen: clean
+gen: clean sqlc
 	mockery
+
+sqlc:
+	sqlc generate
 
 clean:
 	rm -rf mocks
