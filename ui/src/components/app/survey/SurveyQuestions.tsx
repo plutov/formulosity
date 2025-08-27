@@ -15,7 +15,7 @@ import {
   TextInput,
   Textarea,
   Datepicker,
-  FileInput
+  FileInput,
 } from 'flowbite-react'
 import { HiArrowSmRight, HiSelector } from 'react-icons/hi'
 import { ErrCode } from 'components/ui/ErrCode'
@@ -34,7 +34,6 @@ import {
 type SurveyQuestionsProps = {
   survey: Survey
   session: SurveySession
-  apiURL: string
 }
 
 interface SortableItemType {
@@ -45,7 +44,6 @@ interface SortableItemType {
 export default function SurveyQuestions({
   survey,
   session,
-  apiURL,
 }: SurveyQuestionsProps) {
   const initialQuestion = determineInitialQuestion(survey, session)
 
@@ -369,12 +367,12 @@ export default function SurveyQuestions({
         }
         break
       case SurveyQuestionType.File: {
-        const formData = new FormData();
+        const formData = new FormData()
         if (selectedFile) {
-          formData.append('file', selectedFile);
+          formData.append('file', selectedFile)
         }
-        payload = formData;
-        break;
+        payload = formData
+        break
       }
     }
 
@@ -382,8 +380,7 @@ export default function SurveyQuestions({
       survey.url_slug,
       session.uuid,
       currentQuestion.uuid,
-      payload,
-      apiURL
+      payload
     )
 
     if (apiRes.error) {
@@ -462,11 +459,15 @@ export default function SurveyQuestions({
           {currentQuestion.description && (
             <p className="caption">{currentQuestion.description}</p>
           )}
-          <form className="form" onSubmit={async (e) => {
-            e.preventDefault()
-            await submitAnswer()
-          }}>
-            {questionContent}</form>
+          <form
+            className="form"
+            onSubmit={async (e) => {
+              e.preventDefault()
+              await submitAnswer()
+            }}
+          >
+            {questionContent}
+          </form>
           <div className="w-full flex justify-center mt-8">
             <Button
               className="next-question"

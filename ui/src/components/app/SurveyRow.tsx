@@ -1,3 +1,5 @@
+'use client'
+
 import { ErrCode } from 'components/ui/ErrCode'
 import { Alert, Badge, Button, Table } from 'flowbite-react'
 import { updateSurvey } from 'lib/api'
@@ -14,21 +16,16 @@ import {
 
 type SurveyCardProps = {
   survey: Survey
-  apiURL: string
 }
 
-export function SurveyRow({ survey, apiURL }: SurveyCardProps) {
+export function SurveyRow({ survey }: SurveyCardProps) {
   const [errorMsg, setErrorMsg] = useState<string>('')
   const [showErrorLog, setShowErrorLog] = useState<boolean>(false)
 
   async function updateSurveyStatus(surveyUUID: string, status: string) {
-    const res = await updateSurvey(
-      surveyUUID,
-      {
-        delivery_status: status,
-      },
-      apiURL
-    )
+    const res = await updateSurvey(surveyUUID, {
+      delivery_status: status,
+    })
 
     if (res.error) {
       setErrorMsg(res.error)
@@ -91,7 +88,7 @@ export function SurveyRow({ survey, apiURL }: SurveyCardProps) {
       <Table.Cell>
         {(isLaunched || canSartSurvey) && (
           <Button
-            className="h-8 bg-crimson-9 enabled:hover:bg-crimson-11 px-2 py-0.5 rounded text-sm"
+            className="h-8 bg-crimson-9 enabled:hover:bg-crimson-11 px-2 py-0.5 rounded text-sm flex items-center gap-1 whitespace-nowrap"
             onClick={async () => {
               updateSurveyStatus(
                 survey.uuid,
@@ -100,13 +97,15 @@ export function SurveyRow({ survey, apiURL }: SurveyCardProps) {
             }}
           >
             {isLaunched ? (
-              <span>
-                <HiOutlinePause className="inline" /> Stop
-              </span>
+              <>
+                <HiOutlinePause className="w-4 h-4" />
+                <span>Stop</span>
+              </>
             ) : (
-              <span>
-                <HiOutlinePlay className="inline" /> Start
-              </span>
+              <>
+                <HiOutlinePlay className="w-4 h-4" />
+                <span>Start</span>
+              </>
             )}
           </Button>
         )}

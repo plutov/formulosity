@@ -8,10 +8,9 @@ import SurveyQuestions from 'components/app/survey/SurveyQuestions'
 
 type SurveyFormProps = {
   survey: Survey
-  apiURL: string
 }
 
-export default function SurveyForm({ survey, apiURL }: SurveyFormProps) {
+export default function SurveyForm({ survey }: SurveyFormProps) {
   const [surveySession, setSurveySession] = useState<SurveySession | undefined>(
     undefined
   )
@@ -30,12 +29,7 @@ export default function SurveyForm({ survey, apiURL }: SurveyFormProps) {
           return
         }
 
-        const sessionRes = await getSurveySession(
-          window.location.hostname,
-          survey.url_slug,
-          lsValue,
-          apiURL
-        )
+        const sessionRes = await getSurveySession(survey.url_slug, lsValue)
         if (sessionRes.error || !sessionRes.data.data) {
           localStorage.removeItem(`survey_session_id:${survey.url_slug}`)
           setIsNewSession(true)
@@ -48,7 +42,7 @@ export default function SurveyForm({ survey, apiURL }: SurveyFormProps) {
         setIsLoading(false)
       }
     })()
-  }, [survey, apiURL])
+  }, [survey])
 
   if (isLoading) {
     return (
@@ -76,14 +70,10 @@ export default function SurveyForm({ survey, apiURL }: SurveyFormProps) {
   }
 
   if (isNewSession) {
-    return <SurveyIntro survey={survey} apiURL={apiURL} />
+    return <SurveyIntro survey={survey} />
   }
 
   return (
-    <SurveyQuestions
-      survey={survey}
-      session={surveySession as SurveySession}
-      apiURL={apiURL}
-    />
+    <SurveyQuestions survey={survey} session={surveySession as SurveySession} />
   )
 }

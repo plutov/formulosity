@@ -268,21 +268,15 @@ Where `{SURVEY_ID}` id the UUID of a given survey.
 
 ## Installation & Deployment
 
-You can build and run both API and UI with Docker Compose:
+### API and Postgres with Docker Compose
+
+You can build and run both API and Postgres with Docker Compose:
 
 ```
 docker-compose up -d --build
 ```
 
-And you should be able to access the UI on [localhost:3000](http://localhost:3000)
-
-You can deploy individual services to any cloud provider or self host them.
-
-- Go backend
-- Next.js frontend
-- Postgres database
-
-### Environment Variables
+Environment variables:
 
 API:
 
@@ -290,14 +284,7 @@ API:
 - `SURVEYS_DIR` - Directory with surveys, e.g. `/root/surveys`. It's suggested to use mounted volume for this directory.
 - `UPLOADS_DIR` - Directory for uploading files from the survey forms.
 
-UI:
-
-- `CONSOLE_API_ADDR` - Public address of the Go backend. Need to be accessible from the browser.
-- `CONSOLE_API_ADDR_INTERNAL` - Internal address of the Go backend, e.g. `http://api:8080` (could be the same as `CONSOLE_API_ADDR`).
-
 ### Run UI with npm
-
-It's also possible to run UI using `npm`:
 
 ```
 cd ui
@@ -307,13 +294,12 @@ npm run dev
 
 ### Run API locally
 
-Assuming you have Postgres running locally, you can run the API with:
+Assuming you have Postgres running locally (`docker-compose up -d postgres`), you can run the API with:
 
 ```
 cd api
 export DATABASE_URL="postgres://user:pass@localhost:5432/formulosity?sslmode=disable"
 export SURVEYS_DIR="./surveys"
-export UPLOADS_DIR="./uploads"
 go run main.go
 ```
 

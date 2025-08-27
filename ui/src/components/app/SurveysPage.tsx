@@ -6,10 +6,9 @@ import { SurveyRow } from './SurveyRow'
 
 type SurveysPageProps = {
   surveys: Array<Survey>
-  apiURL: string
 }
 
-export function SurveysPage({ surveys, apiURL }: SurveysPageProps) {
+export function SurveysPage({ surveys }: SurveysPageProps) {
   return (
     <div>
       <div className="flex flex-col w-full tabs">
@@ -26,13 +25,7 @@ export function SurveysPage({ surveys, apiURL }: SurveysPageProps) {
               </Table.Head>
               <Table.Body className="divide-y">
                 {surveys.map((survey) => {
-                  return (
-                    <SurveyRow
-                      key={survey.uuid}
-                      survey={survey}
-                      apiURL={apiURL}
-                    />
-                  )
+                  return <SurveyRow key={survey.uuid} survey={survey} />
                 })}
               </Table.Body>
             </Table>
