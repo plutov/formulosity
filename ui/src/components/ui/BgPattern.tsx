@@ -1,3 +1,5 @@
+'use client'
+
 export const BgPattern = () => {
   return (
     <div className="background">

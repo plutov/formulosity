@@ -24,12 +24,10 @@ import moment from 'moment'
 
 type SurveyResponsesPageProps = {
   currentSurvey: Survey
-  apiURL: string
 }
 
 export function SurveyResponsesPage({
   currentSurvey,
-  apiURL,
 }: SurveyResponsesPageProps) {
   currentSurvey = currentSurvey as Survey
 
@@ -52,8 +50,7 @@ export function SurveyResponsesPage({
   const downloadFile = async (path: string) => {
     await download(
       currentSurvey.uuid,
-      path.substring(path.lastIndexOf('/') + 1),
-      apiURL
+      path.substring(path.lastIndexOf('/') + 1)
     )
   }
 
@@ -68,8 +65,7 @@ export function SurveyResponsesPage({
     const offset = (page - 1) * limit
     const surveySessionsResp = await getSurveySessions(
       currentSurvey.uuid,
-      `limit=${limit}&offset=${offset}&sort_by=${sortBy}&order=${order}`,
-      apiURL
+      `limit=${limit}&offset=${offset}&sort_by=${sortBy}&order=${order}`
     )
 
     if (surveySessionsResp.error) {
@@ -84,8 +80,7 @@ export function SurveyResponsesPage({
 
     const deleteSessionResp = await deleteSurveySession(
       currentSurvey.uuid,
-      session.uuid,
-      apiURL
+      session.uuid
     )
 
     if (deleteSessionResp.error) {
@@ -119,8 +114,7 @@ export function SurveyResponsesPage({
 
               const allSessionsResp = await getSurveySessions(
                 currentSurvey.uuid,
-                `limit=1000000&offset=0&sort_by=created_at&order=desc`,
-                apiURL
+                `limit=1000000&offset=0&sort_by=created_at&order=desc`
               )
 
               setDownloading(false)

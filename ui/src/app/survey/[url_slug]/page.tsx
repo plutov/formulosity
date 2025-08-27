@@ -1,69 +1,59 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useParams } from 'next/navigation'
 import { getSurvey } from 'lib/api'
 import { Survey } from 'lib/types'
 import SurveyLayout from 'components/app/survey/SurveyLayout'
 import SurveyNotFound from 'components/app/survey/SurveyNotFound'
 import SurveyForm from 'components/app/survey/SurveyForm'
-import { headers } from 'next/headers'
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { url_slug: string }
-}) {
-  const headersList = headers()
-  const surveyResp = await getSurvey(
-    headersList.get('host') as string,
-    params.url_slug
-  )
-  if (
-    surveyResp.error ||
-    !surveyResp.data.data ||
-    !surveyResp.data.data.config
-  ) {
-    return {
-      title: 'Survey not found',
+export default function SurveyPage() {
+  const params = useParams()
+  const [survey, setSurvey] = useState<Survey | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [notFound, setNotFound] = useState(false)
+
+  useEffect(() => {
+    const fetchSurvey = async () => {
+      if (!params.url_slug) return
+
+      const surveyResp = await getSurvey(params.url_slug as string)
+
+      if (
+        surveyResp.error ||
+        !surveyResp.data.data ||
+        !surveyResp.data.data.config
+      ) {
+        setNotFound(true)
+      } else {
+        setSurvey(surveyResp.data.data as Survey)
+      }
+      setLoading(false)
     }
-  }
 
-  const survey = surveyResp.data.data as Survey
+    fetchSurvey()
+  }, [params.url_slug])
 
-  return {
-    title: survey.config.title,
-  }
-}
-
-export default async function SurveyPage({
-  params,
-}: {
-  params: { url_slug: string }
-}) {
-  const headersList = headers()
-  const surveyResp = await getSurvey(
-    headersList.get('host') as string,
-    params.url_slug
-  )
-  const apiURL = process.env.CONSOLE_API_ADDR || ''
-  if (
-    surveyResp.error ||
-    !surveyResp.data.data ||
-    !surveyResp.data.data.config
-  ) {
+  if (loading) {
     return (
-      <SurveyLayout apiURL={apiURL}>
+      <SurveyLayout>
+        <div>Loading...</div>
+      </SurveyLayout>
+    )
+  }
+
+  if (notFound || !survey) {
+    return (
+      <SurveyLayout>
         <SurveyNotFound />
       </SurveyLayout>
     )
   }
 
-  const survey = surveyResp.data.data as Survey
-
   return (
-    <SurveyLayout
-      surveyTheme={survey.config.theme}
-      urlSlug={survey.url_slug}
-      apiURL={apiURL}
-    >
-      <SurveyForm survey={survey} apiURL={apiURL} />
+    <SurveyLayout surveyTheme={survey.config.theme} urlSlug={survey.url_slug}>
+      <SurveyForm survey={survey} />
     </SurveyLayout>
   )
 }

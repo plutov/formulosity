@@ -14,19 +14,6 @@ services:
     volumes:
       - ./api/surveys:/root/surveys
       - ./api/uploads:/root/uploads
-  ui:
-    restart: always
-    build:
-      context: ./ui
-    ports:
-      - "3000:3000"
-    environment:
-      - CONSOLE_API_ADDR_INTERNAL=http://api:8080
-      - CONSOLE_API_ADDR=http://localhost:9900
-      - IRON_SESSION_SECRET=e75af92dffba8065f2730472f45f2046941fe35f361739d31992f42d88d6bf6c
-      - HTTP_BASIC_AUTH=user:pass
-    depends_on:
-      - api
   postgres:
     image: postgres:16.0-alpine
     restart: always
