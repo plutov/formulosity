@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_ADDR || 'http://localhost:9900'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_ADDR || 'http://localhost:9900'
 
 export async function call(path: string, init?: RequestInit) {
   try {
