@@ -1,5 +1,5 @@
 <template>
-  <main class="mb-auto flex-grow dark">
+  <main class="mb-auto flex-grow">
     <div class="p-4">
       <slot />
     </div>
