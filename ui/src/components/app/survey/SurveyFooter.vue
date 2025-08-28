@@ -1,7 +1,7 @@
 <template>
   <div class="completion-message text-center py-8">
-    <h2 class="h2">Thank you for completing the survey!</h2>
-    <p v-if="config.outro" class="mt-4" v-html="formatOutro(config.outro)"></p>
+    <h2 class="h2 text-gray-300">Thank you for completing the survey!</h2>
+    <p v-if="config.outro" class="mt-4 text-gray-300" v-html="formatOutro(config.outro)"></p>
   </div>
 </template>
 

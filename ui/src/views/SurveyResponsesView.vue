@@ -122,7 +122,7 @@
       <div v-if="viewSession" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" @click.self="viewSession = undefined">
         <div class="bg-white p-6 rounded-lg max-w-4xl max-h-96 overflow-y-auto">
           <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-semibold">Response: {{ viewSession.uuid }}</h3>
+            <h3 class="text-lg font-semibold text-gray-900">Response: {{ viewSession.uuid }}</h3>
             <button 
               @click="viewSession = undefined"
               class="text-gray-400 hover:text-gray-600"
@@ -141,9 +141,9 @@
               </thead>
               <tbody>
                 <tr v-for="answer in viewSession.question_answers" :key="answer.question_uuid" class="border-b">
-                  <td class="p-3">{{ answer.question_id }}</td>
-                  <td class="p-3">{{ getQuestionLabel(answer.question_uuid) }}</td>
-                  <td class="p-3">
+                  <td class="p-3 text-gray-900">{{ answer.question_id }}</td>
+                  <td class="p-3 text-gray-900">{{ getQuestionLabel(answer.question_uuid) }}</td>
+                  <td class="p-3 text-gray-900">
                     <div v-if="isFileAnswer(answer.question_uuid)">
                       <button 
                         @click="downloadFile(answer.answer.value as string)"

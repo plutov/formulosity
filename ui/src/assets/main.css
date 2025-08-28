@@ -8,21 +8,21 @@ body {
 }
 
 table {
-  @apply text-gray-100;
+  @apply text-gray-900;
 }
 
 @layer base {
   .h1 {
-    @apply text-red-400;
+    @apply text-gray-300;
   }
   .h2 {
-    @apply text-red-400;
+    @apply text-gray-900;
   }
   .h3 {
-    @apply text-red-400;
+    @apply text-gray-900;
   }
   .h4 {
-    @apply text-red-400;
+    @apply text-gray-900;
   }
 }
 
@@ -94,7 +94,7 @@ table {
   }
 
   .spinner {
-    @apply inline w-8 h-8 text-white animate-spin fill-red-400;
+    @apply inline w-8 h-8 text-gray-600 animate-spin fill-blue-600;
   }
 
   .background-screen {
@@ -102,7 +102,7 @@ table {
   }
 
   .background-fill {
-    @apply max-w-full max-h-full h-[562px] w-[562px] rounded-full bg-red-500/20 blur-[150px];
+    @apply max-w-full max-h-full h-[562px] w-[562px] rounded-full bg-blue-500/10 blur-[150px];
   }
 
   .intro {
@@ -110,7 +110,7 @@ table {
   }
 
   .intro-title {
-    @apply py-8 lg:py-16 text-base lg:text-lg;
+    @apply py-8 lg:py-16 text-base lg:text-lg text-gray-300;
   }
 
   .intro-start {
