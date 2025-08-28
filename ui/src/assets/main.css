@@ -1,0 +1,63 @@
+@import './base.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: monospace;
+}
+
+table {
+  @apply text-gray-900;
+}
+
+@layer base {
+  .h1 {
+    @apply text-gray-300;
+  }
+  .h2 {
+    @apply text-gray-900;
+  }
+}
+
+@layer components {
+  .h1 {
+    @apply text-[56px] font-semibold leading-[64px] tracking-[0%];
+  }
+  .h2 {
+    @apply text-[40px] font-semibold leading-[48px] tracking-[0%];
+  }
+
+  /* Survey specific styles */
+  .background {
+    @apply absolute inset-0 -z-50;
+  }
+
+  .background-screen {
+    @apply flex h-screen flex-col items-center justify-center;
+  }
+
+  .background-fill {
+    @apply max-w-full max-h-full h-[562px] w-[562px] rounded-full bg-blue-500/10 blur-[150px];
+  }
+
+  .intro {
+    @apply mx-auto max-w-screen-md text-center py-8 lg:py-16 gap-4;
+  }
+
+  .intro-title {
+    @apply py-8 lg:py-16 text-base lg:text-lg text-gray-300;
+  }
+
+  .intro-start {
+    @apply flex flex-col py-8 lg:py-16 items-center text-center;
+  }
+
+  .question-container {
+    @apply mx-auto max-w-screen-md py-8 px-4;
+  }
+
+  .completion-message {
+    @apply mx-auto max-w-screen-md text-center py-8 lg:py-16;
+  }
+}

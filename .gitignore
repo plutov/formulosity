@@ -2,9 +2,9 @@ api/pkg/github/tmp/
 api/pkg/parser/tmp/
 api/postgres-data/
 api/uploads/
-ui/node_modules
-ui/.next/
-ui/out/
+node_modules/
+.next/
+ui/dist
 ui/build
 ui/npm-debug.log*
 ui/yarn-debug.log*

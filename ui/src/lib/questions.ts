@@ -1,4 +1,4 @@
-import { Survey, SurveyQuestion, SurveySession } from './types'
+import type { Survey, SurveyQuestion, SurveySession } from './types'
 
 export function determineInitialQuestion(
   survey: Survey,

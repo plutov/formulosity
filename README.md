@@ -276,6 +276,8 @@ You can build and run both API and Postgres with Docker Compose:
 docker-compose up -d --build
 ```
 
+API will be available at `http://localhost:9900`.
+
 Environment variables:
 
 API:
@@ -292,6 +294,8 @@ npm install
 npm run dev
 ```
 
+UI will be available at `http://localhost:5173`.
+
 ### Run API locally
 
 Assuming you have Postgres running locally (`docker-compose up -d postgres`), you can run the API with:
@@ -306,7 +310,7 @@ go run main.go
 ## Tech Stack
 
 - Backend: Go, Postgres
-- UI: Next.js, Tailwind CSS
+- UI: Vue 3, Tailwind CSS
 
 ## Create new Postgres migration
 
