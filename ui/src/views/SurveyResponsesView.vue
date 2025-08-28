@@ -175,7 +175,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import moment from 'moment'
 import { Icon } from '@iconify/vue'
 import AppLayout from '@/components/app/AppLayout.vue'
 import ErrCode from '@/components/ui/ErrCode.vue'
@@ -321,7 +320,14 @@ async function deleteSession(session: SurveySession) {
 }
 
 function formatDate(dateString: string): string {
-  return moment(dateString).format('MMM D, YYYY HH:mm')
+  const date = new Date(dateString)
+  return date.toLocaleDateString('en-US', { 
+    month: 'short', 
+    day: 'numeric', 
+    year: 'numeric', 
+    hour: '2-digit', 
+    minute: '2-digit' 
+  })
 }
 
 function getQuestionLabel(questionUuid: string): string {

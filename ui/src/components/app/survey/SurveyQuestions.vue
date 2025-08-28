@@ -286,7 +286,7 @@ async function submitAnswer() {
   errMessage.value = ''
   
   // Convert answer value based on question type
-  let processedValue = answerValue.value
+  let processedValue: string | string[] | number | boolean = answerValue.value
   if (currentQuestion.value.type === SurveyQuestionType.Rating) {
     processedValue = Number(answerValue.value)
   } else if (currentQuestion.value.type === SurveyQuestionType.YesNo) {

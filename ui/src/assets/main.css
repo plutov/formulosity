@@ -18,83 +18,19 @@ table {
   .h2 {
     @apply text-gray-900;
   }
-  .h3 {
-    @apply text-gray-900;
-  }
-  .h4 {
-    @apply text-gray-900;
-  }
 }
 
 @layer components {
-  .display {
-    @apply text-[80px] font-semibold leading-[88px] tracking-[-2%];
-  }
   .h1 {
     @apply text-[56px] font-semibold leading-[64px] tracking-[0%];
   }
   .h2 {
     @apply text-[40px] font-semibold leading-[48px] tracking-[0%];
   }
-  .h3 {
-    @apply text-[38px] font-semibold leading-[48px] tracking-[-0.75%];
-  }
-  .h4 {
-    @apply text-[32px] font-semibold leading-[40px] tracking-[-0.2%];
-  }
-  .h5 {
-    @apply text-[16px] font-bold uppercase leading-[20px] tracking-[5%];
-  }
-  .h6 {
-    @apply text-[14px] font-semibold  uppercase leading-[16px] tracking-[5%];
-  }
-  .body-xl {
-    @apply text-[24px] font-normal leading-[36px] tracking-[0%];
-  }
-  .body-l {
-    @apply text-[20px] font-normal leading-[32px] tracking-[-0.1%];
-  }
-  .body-l-medium {
-    @apply text-[20px] font-medium leading-[32px] tracking-[-0.1%];
-  }
-  .body-l-semibold {
-    @apply text-[20px] font-semibold leading-[32px] tracking-[-0.1%];
-  }
-  .body {
-    @apply text-[16px] font-normal leading-[24px] tracking-[0%];
-  }
-  .body-medium {
-    @apply text-[16px] font-medium leading-[24px] tracking-[0%];
-  }
-  .body-semibold {
-    @apply text-[16px] font-semibold leading-[24px] tracking-[0%];
-  }
-  .caption {
-    @apply text-[14px] font-normal leading-[20px] tracking-[0%];
-  }
-  .caption-medium {
-    @apply text-[14px] font-medium leading-[20px] tracking-[0%];
-  }
-  .caption-semibold {
-    @apply text-[14px] font-semibold leading-[20px] tracking-[0%];
-  }
-  .caption-s {
-    @apply text-[12px] font-normal leading-[16px] tracking-[0%];
-  }
-  .caption-s-medium {
-    @apply text-[12px] font-medium leading-[16px] tracking-[0%];
-  }
-  .caption-s-semibold {
-    @apply text-[12px] font-semibold leading-[16px] tracking-[0%];
-  }
 
   /* Survey specific styles */
   .background {
     @apply absolute inset-0 -z-50;
-  }
-
-  .spinner {
-    @apply inline w-8 h-8 text-gray-600 animate-spin fill-blue-600;
   }
 
   .background-screen {

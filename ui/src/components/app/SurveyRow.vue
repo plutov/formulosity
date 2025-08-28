@@ -70,7 +70,6 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import moment from 'moment'
 import { Icon } from '@iconify/vue'
 import type { Survey } from '@/lib/types'
 import { SurveyDeliveryStatus, SurveyParseStatus } from '@/lib/types'
@@ -90,7 +89,12 @@ const isLaunched = computed(() => props.survey.delivery_status === SurveyDeliver
 const canStartSurvey = computed(() => props.survey.parse_status === SurveyParseStatus.Success && !isLaunched.value)
 
 function formatDate(dateString: string): string {
-  return moment(dateString).format('MMM D, YYYY')
+  const date = new Date(dateString)
+  return date.toLocaleDateString('en-US', { 
+    month: 'short', 
+    day: 'numeric', 
+    year: 'numeric' 
+  })
 }
 
 function getParseStatusColor(status: string): string {
