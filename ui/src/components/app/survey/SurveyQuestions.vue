@@ -205,7 +205,10 @@ const answerValue = ref<string | string[]>('')
 const sortableItems = ref<SortableItem[]>([])
 const draggedIndex = ref<number | null>(null)
 const errMessage = ref<string>('')
-const localSession = ref<SurveySession>({ ...props.session })
+const localSession = ref<SurveySession>({ 
+  ...props.session,
+  question_answers: props.session?.question_answers || []
+})
 
 const nextQuestion = computed(() => {
   if (!currentQuestion.value) return undefined
@@ -314,6 +317,11 @@ async function submitAnswer() {
   }
 
   // Update local session with new answer
+  if (!localSession.value || !localSession.value.question_answers) {
+    console.error('localSession or question_answers is null')
+    return
+  }
+  
   const existingAnswerIndex = localSession.value.question_answers.findIndex(
     (a) => a.question_uuid === currentQuestion.value!.uuid
   )
