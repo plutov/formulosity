@@ -96,22 +96,14 @@ export async function del(path: string) {
 }
 
 export async function get(path: string) {
-  const headers = {}
-
   return call(path, {
     method: 'GET',
-    headers: headers,
   })
 }
 
 export async function getSurvey(urlSlug: string) {
-  const headers = {
-    Referer: typeof window !== 'undefined' ? window.location.host : '',
-  }
-
   return await call(`/surveys/${urlSlug}`, {
     method: 'GET',
-    headers: headers,
   })
 }
 
@@ -122,7 +114,6 @@ export async function getSurveys() {
 export async function createSurveySession(urlSlug: string) {
   const headers = {
     'Content-Type': 'application/json',
-    Referer: typeof window !== 'undefined' ? window.location.host : '',
   }
 
   return await call(`/surveys/${urlSlug}/sessions`, {
@@ -133,13 +124,8 @@ export async function createSurveySession(urlSlug: string) {
 }
 
 export async function getSurveySession(urlSlug: string, sessionId: string) {
-  const headers = {
-    Referer: typeof window !== 'undefined' ? window.location.host : '',
-  }
-
   return await call(`/surveys/${urlSlug}/sessions/${sessionId}`, {
     method: 'GET',
-    headers: headers,
   })
 }
 
@@ -151,10 +137,7 @@ export async function updateSurvey(surveyUUID: string, payload: object) {
   return await patch(`/app/surveys/${surveyUUID}`, payload)
 }
 
-export async function deleteSurveySession(
-  surveyUUID: string,
-  sessionUUID: string
-) {
+export async function deleteSurveySession(surveyUUID: string, sessionUUID: string) {
   return await del(`/app/surveys/${surveyUUID}/sessions/${sessionUUID}`)
 }
 
@@ -162,19 +145,19 @@ export async function submitQuestionAnswer(
   urlSlug: string,
   sessionId: string,
   questionUUID: string,
-  payload: object | FormData
+  payload: object | FormData,
 ) {
   if (payload instanceof FormData) {
     return await postFormData(
       `/surveys/${urlSlug}/sessions/${sessionId}/questions/${questionUUID}/answers`,
-      payload
-    )
-  } else {
-    return await post(
-      `/surveys/${urlSlug}/sessions/${sessionId}/questions/${questionUUID}/answers`,
-      payload
+      payload,
     )
   }
+
+  return await post(
+    `/surveys/${urlSlug}/sessions/${sessionId}/questions/${questionUUID}/answers`,
+    payload,
+  )
 }
 
 export async function download(surveyUUID: string, fileName: string) {
@@ -188,3 +171,4 @@ export async function download(surveyUUID: string, fileName: string) {
   a.click()
   URL.revokeObjectURL(fileUrl)
 }
+
