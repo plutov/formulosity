@@ -28,6 +28,7 @@ func SubmitAnswer(svc services.Services, session *types.SurveySession, survey *t
 	// Option labels may contain answer piping. Validate against rendered labels
 	// without mutating the persisted survey template.
 	validationQuestion := *question
+	validationQuestion.Options = append([]string(nil), question.Options...)
 	for i, option := range validationQuestion.Options {
 		rendered, renderErr := types.Interpolate(option, answers)
 		if renderErr != nil {
