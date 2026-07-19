@@ -1,6 +1,6 @@
 <template>
   <div v-if="localSession.status === SurveySessionStatus.Completed">
-    <SurveyFooter :survey="survey" />
+    <SurveyFooter :survey="survey" :session="localSession" />
   </div>
   <div v-else-if="!currentQuestion">
     <div class="completion-message text-center py-8">
@@ -17,8 +17,8 @@
   </div>
   <div v-else-if="currentQuestion">
     <div class="question-container">
-      <h2 class="h2 text-gray-300">{{ currentQuestion.label }}</h2>
-      <p v-if="currentQuestion.description" class="text-gray-300 mb-6">{{ currentQuestion.description }}</p>
+      <h2 class="h2 text-gray-300">{{ renderedText(currentQuestion.label) }}</h2>
+      <p v-if="currentQuestion.description" class="text-gray-300 mb-6">{{ renderedText(currentQuestion.description) }}</p>
       
       <!-- Single Choice -->
       <div v-if="currentQuestion.type === SurveyQuestionType.SingleChoice" class="space-y-3">
@@ -27,11 +27,11 @@
             type="radio" 
             :id="option" 
             :name="currentQuestion.uuid"
-            :value="option"
+            :value="renderedOption(option)"
             v-model="answerValue"
             class="mr-3 text-blue-600 focus:ring-blue-500"
           />
-          <label :for="option" class="text-gray-300">{{ option }}</label>
+          <label :for="option" class="text-gray-300">{{ renderedOption(option) }}</label>
         </div>
       </div>
 
@@ -41,11 +41,11 @@
           <input 
             type="checkbox" 
             :id="option" 
-            :value="option"
+            :value="renderedOption(option)"
             v-model="answerValue"
             class="mr-3 text-blue-600 focus:ring-blue-500 rounded"
           />
-          <label :for="option" class="text-gray-300">{{ option }}</label>
+          <label :for="option" class="text-gray-300">{{ renderedOption(option) }}</label>
         </div>
       </div>
 
@@ -181,6 +181,7 @@ import type {
 import { submitQuestionAnswer } from '@/lib/api'
 import ErrCode from '@/components/ui/ErrCode.vue'
 import SurveyFooter from './SurveyFooter.vue'
+import { answersFor, clearHiddenAnswers, interpolateText } from '@/lib/questions'
 import {
   determineNextQuestion,
   determinePrevQuestionWithAnswer,
@@ -220,6 +221,11 @@ const prevQuestion = computed(() => {
   return determinePrevQuestionWithAnswer(props.survey, localSession.value, currentQuestion.value)
 })
 
+const answerMap = computed(() => answersFor(props.survey, localSession.value))
+
+function renderedText(text: string): string { return interpolateText(text, answerMap.value) }
+function renderedOption(option: string): string { return interpolateText(option, answerMap.value) }
+
 const canSubmit = computed(() => {
   if (!currentQuestion.value) return false
   
@@ -249,27 +255,29 @@ function onDrop(dropIndex: number) {
 watch(currentQuestion, (newQuestion) => {
   if (!newQuestion) return
 
+  // Session state is the source of truth. Do not use the mutable answer field
+  // on a question object, which can retain a value after visibility cleanup.
+  const storedAnswer = localSession.value.question_answers.find(
+    (answer) => answer.question_uuid === newQuestion.uuid
+  )?.answer.value
   if (newQuestion.type === SurveyQuestionType.Ranking) {
-    // Initialize sortable items for ranking questions
-    if (newQuestion.answer?.value) {
-      const rankingArray = newQuestion.answer.value as string[]
-      sortableItems.value = rankingArray.map((item, index) => ({
+    if (Array.isArray(storedAnswer)) {
+      sortableItems.value = storedAnswer.map((item, index) => ({
         id: index,
-        name: item
+        name: String(item)
       }))
     } else {
       sortableItems.value = newQuestion.options.map((option, index) => ({
         id: index,
-        name: option
+        name: renderedOption(option)
       }))
     }
     answerValue.value = []
-  } else if (newQuestion.answer?.value !== undefined) {
-    const value = newQuestion.answer.value
-    if (Array.isArray(value)) {
-      answerValue.value = value.map(v => String(v))
+  } else if (storedAnswer !== undefined) {
+    if (Array.isArray(storedAnswer)) {
+      answerValue.value = storedAnswer.map(v => String(v))
     } else {
-      answerValue.value = String(value)
+      answerValue.value = String(storedAnswer)
     }
   } else {
     if (newQuestion.type === SurveyQuestionType.MultipleChoice) {
@@ -316,29 +324,27 @@ async function submitAnswer() {
     return
   }
 
-  // Update local session with new answer
-  if (!localSession.value || !localSession.value.question_answers) {
-    console.error('localSession or question_answers is null')
-    return
-  }
-  
-  const existingAnswerIndex = localSession.value.question_answers.findIndex(
-    (a) => a.question_uuid === currentQuestion.value!.uuid
-  )
-
-  if (existingAnswerIndex >= 0) {
-    localSession.value.question_answers[existingAnswerIndex] = {
+  // The API response is authoritative. Keep a local fallback for transports
+  // that return no body, and always apply the same transitive visibility
+  // cleanup locally for responsive navigation.
+  if (res.data?.data?.question_answers) {
+    localSession.value = res.data.data as SurveySession
+  } else {
+    const existingAnswerIndex = localSession.value.question_answers.findIndex(
+      (a) => a.question_uuid === currentQuestion.value!.uuid
+    )
+    const submittedAnswer = {
       question_id: currentQuestion.value.id,
       question_uuid: currentQuestion.value.uuid,
       answer: { value: processedValue }
     }
-  } else {
-    localSession.value.question_answers.push({
-      question_id: currentQuestion.value.id,
-      question_uuid: currentQuestion.value.uuid,
-      answer: { value: processedValue }
-    })
+    if (existingAnswerIndex >= 0) {
+      localSession.value.question_answers[existingAnswerIndex] = submittedAnswer
+    } else {
+      localSession.value.question_answers.push(submittedAnswer)
+    }
   }
+  localSession.value = clearHiddenAnswers(props.survey, localSession.value)
 
   // Move to next question or complete
   const next = nextQuestion.value

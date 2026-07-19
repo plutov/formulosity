@@ -41,6 +41,25 @@ type Questions struct {
 	Questions []Question `json:"questions" yaml:"questions"`
 }
 
+// QuestionCondition describes a structured visibility predicate. Exactly one
+// leaf or logical operator may be set on a condition node.
+type QuestionCondition struct {
+	Question           string `json:"question,omitempty" yaml:"question,omitempty"`
+	Equals             any    `json:"equals,omitempty" yaml:"equals,omitempty"`
+	NotEquals          any    `json:"not_equals,omitempty" yaml:"not_equals,omitempty"`
+	Contains           any    `json:"contains,omitempty" yaml:"contains,omitempty"`
+	GreaterThan        any    `json:"greater_than,omitempty" yaml:"greater_than,omitempty"`
+	GreaterThanOrEqual any    `json:"greater_than_or_equal,omitempty" yaml:"greater_than_or_equal,omitempty"`
+	LessThan           any    `json:"less_than,omitempty" yaml:"less_than,omitempty"`
+	LessThanOrEqual    any    `json:"less_than_or_equal,omitempty" yaml:"less_than_or_equal,omitempty"`
+	IsAnswered         *bool  `json:"is_answered,omitempty" yaml:"is_answered,omitempty"`
+	IsNotAnswered      *bool  `json:"is_not_answered,omitempty" yaml:"is_not_answered,omitempty"`
+
+	All []QuestionCondition `json:"all,omitempty" yaml:"all,omitempty"`
+	Any []QuestionCondition `json:"any,omitempty" yaml:"any,omitempty"`
+	Not *QuestionCondition  `json:"not,omitempty" yaml:"not,omitempty"`
+}
+
 type Question struct {
 	Type                QuestionType        `json:"type" yaml:"type"`
 	Label               string              `json:"label" yaml:"label"`
@@ -52,6 +71,7 @@ type Question struct {
 	Options             []string            `json:"options,omitempty" yaml:"options,omitempty"`
 	UUID                string              `json:"uuid" yaml:"-"`
 	Validation          *QuestionValidation `json:"validation,omitempty" yaml:"validation,omitempty"`
+	VisibleIf           *QuestionCondition  `json:"visible_if,omitempty" yaml:"visible_if,omitempty"`
 }
 
 type QuestionValidation struct {

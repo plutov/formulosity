@@ -8,6 +8,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/microcosm-cc/bluemonday"
@@ -97,6 +100,49 @@ func (a *SurveyConfig) Scan(value interface{}) error {
 	return json.Unmarshal(b, &a)
 }
 
+var interpolationPattern = regexp.MustCompile(`{{\s*([A-Za-z0-9_-]+)\s*}}`)
+
+// Interpolate resolves question references in text. Missing answers are
+// intentionally rendered as empty strings.
+func Interpolate(text string, answers map[string]any) (string, error) {
+	return interpolationPattern.ReplaceAllStringFunc(text, func(match string) string {
+		parts := interpolationPattern.FindStringSubmatch(match)
+		if len(parts) < 2 {
+			return ""
+		}
+		return formatInterpolatedValue(answers[parts[1]])
+	}), nil
+}
+
+func formatInterpolatedValue(value any) string {
+	if value == nil {
+		return ""
+	}
+	if values, ok := value.([]string); ok {
+		return strings.Join(values, ", ")
+	}
+	if values, ok := value.([]any); ok {
+		out := make([]string, len(values))
+		for i, v := range values {
+			out[i] = formatInterpolatedValue(v)
+		}
+		return strings.Join(out, ", ")
+	}
+	switch v := value.(type) {
+	case string:
+		return v
+	case bool:
+		return strconv.FormatBool(v)
+	case int:
+		return strconv.Itoa(v)
+	case int64:
+		return strconv.FormatInt(v, 10)
+	case float64:
+		return strconv.FormatFloat(v, 'f', -1, 64)
+	}
+	return fmt.Sprint(value)
+}
+
 func (s *SurveyConfig) Validate() error {
 	if s.Title == "" {
 		return fmt.Errorf("metadata.title is required")
@@ -122,6 +168,9 @@ func (s *SurveyConfig) Validate() error {
 	if err := s.Questions.Validate(); err != nil {
 		return err
 	}
+	if err := s.validateReferences(); err != nil {
+		return err
+	}
 
 	if s.Webhook != nil {
 		if err := s.Webhook.Validate(); err != nil {
@@ -130,6 +179,122 @@ func (s *SurveyConfig) Validate() error {
 	}
 
 	return nil
+}
+
+func (s *SurveyConfig) validateReferences() error {
+	ids := make(map[string]int)
+	for i, q := range s.Questions.Questions {
+		if q.ID != "" {
+			ids[q.ID] = i
+		}
+	}
+	validateText := func(text string) error {
+		for _, match := range interpolationPattern.FindAllStringSubmatch(text, -1) {
+			if _, ok := ids[match[1]]; !ok {
+				return fmt.Errorf("interpolation references unknown question: %s", match[1])
+			}
+		}
+		return nil
+	}
+	if err := validateText(s.Intro); err != nil {
+		return err
+	}
+	if err := validateText(s.Outro); err != nil {
+		return err
+	}
+	for i, q := range s.Questions.Questions {
+		if err := validateText(q.Label); err != nil {
+			return fmt.Errorf("questions[%d].label: %w", i, err)
+		}
+		if err := validateText(q.Description); err != nil {
+			return fmt.Errorf("questions[%d].description: %w", i, err)
+		}
+		for j, option := range q.Options {
+			if err := validateText(option); err != nil {
+				return fmt.Errorf("questions[%d].options[%d]: %w", i, j, err)
+			}
+		}
+		if q.VisibleIf != nil {
+			if err := q.VisibleIf.Validate(0); err != nil {
+				return fmt.Errorf("questions[%d].visible_if: %w", i, err)
+			}
+			if err := validateConditionReferences(q.VisibleIf, ids, i); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func validateConditionReferences(c *QuestionCondition, ids map[string]int, current int) error {
+	if c.Question != "" {
+		index, ok := ids[c.Question]
+		if !ok {
+			return fmt.Errorf("condition references unknown question: %s", c.Question)
+		}
+		if index >= current {
+			return fmt.Errorf("condition question %s must reference an earlier question", c.Question)
+		}
+	}
+	for i := range c.All {
+		if err := validateConditionReferences(&c.All[i], ids, current); err != nil {
+			return err
+		}
+	}
+	for i := range c.Any {
+		if err := validateConditionReferences(&c.Any[i], ids, current); err != nil {
+			return err
+		}
+	}
+	if c.Not != nil {
+		return validateConditionReferences(c.Not, ids, current)
+	}
+	return nil
+}
+
+func (s *SurveyConfig) IsQuestionVisible(question Question, answers map[string]any) (bool, error) {
+	if question.VisibleIf == nil {
+		return true, nil
+	}
+	return question.VisibleIf.Evaluate(answers)
+}
+
+func (s *SurveyConfig) VisibleQuestions(answers map[string]any) ([]Question, error) {
+	visible := make([]Question, 0, len(s.Questions.Questions))
+	for _, q := range s.Questions.Questions {
+		ok, err := s.IsQuestionVisible(q, answers)
+		if err != nil {
+			return nil, err
+		}
+		if ok {
+			visible = append(visible, q)
+		}
+	}
+	return visible, nil
+}
+
+// Interpolated returns an answer-aware presentation copy of the configuration.
+// Persisted templates are never changed. Hidden questions are omitted, so this
+// copy is safe for a respondent-specific representation such as a webhook.
+func (s *SurveyConfig) Interpolated(answers map[string]any) (*SurveyConfig, error) {
+	copyConfig := *s
+	copyConfig.Intro, _ = Interpolate(s.Intro, answers)
+	copyConfig.Outro, _ = Interpolate(s.Outro, answers)
+	visible, err := s.VisibleQuestions(answers)
+	if err != nil {
+		return nil, err
+	}
+	copyConfig.Questions = &Questions{Questions: make([]Question, len(visible))}
+	for i, question := range visible {
+		question.Label, _ = Interpolate(question.Label, answers)
+		question.Description, _ = Interpolate(question.Description, answers)
+		question.Options = append([]string(nil), question.Options...)
+		for optionIndex := range question.Options {
+			question.Options[optionIndex], _ = Interpolate(question.Options[optionIndex], answers)
+		}
+		copyConfig.Questions.Questions[i] = question
+	}
+	return &copyConfig, nil
 }
 
 func (s *SurveyConfig) SetOptionsFromVariables() error {

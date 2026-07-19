@@ -23,6 +23,7 @@
 import { ref, computed } from 'vue'
 import type { Survey, SurveyConfig, SurveySession } from '@/lib/types'
 import { createSurveySession } from '@/lib/api'
+import { interpolateText } from '@/lib/questions'
 import ErrCode from '@/components/ui/ErrCode.vue'
 import SurveyQuestions from './SurveyQuestions.vue'
 
@@ -38,7 +39,7 @@ const surveySession = ref<SurveySession | undefined>(undefined)
 const config = computed(() => props.survey.config as SurveyConfig)
 
 function formatIntro(intro: string): string {
-  return intro.replace(/(?:\r\n|\r|\n)/g, '<br>')
+  return interpolateText(intro, {}).replace(/(?:\r\n|\r|\n)/g, '<br>')
 }
 
 async function startSurvey() {

@@ -16,7 +16,7 @@ type Services struct {
 
 func InitServices() (Services, error) {
 	svc := Services{
-		Logger: slog.New(slog.NewJSONHandler(os.Stdout, nil)),
+		Logger:  slog.New(slog.NewJSONHandler(os.Stdout, nil)),
 		Storage: new(storage.Postgres),
 	}
 

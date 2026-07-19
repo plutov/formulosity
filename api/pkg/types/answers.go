@@ -17,6 +17,22 @@ type Answer interface {
 	Value() (driver.Value, error)
 }
 
+// AnswerValue converts a typed answer to the scalar representation used by
+// condition evaluation and interpolation.
+func AnswerValue(answer Answer) (any, error) {
+	data, err := json.Marshal(answer)
+	if err != nil {
+		return nil, err
+	}
+	var decoded struct {
+		Value any `json:"value"`
+	}
+	if err := json.Unmarshal(data, &decoded); err != nil {
+		return nil, err
+	}
+	return decoded.Value, nil
+}
+
 type SingleOptionAnswer struct {
 	AnswerValue string `json:"value"`
 }

@@ -822,6 +822,15 @@ func (_c *MockInterface_Ping_Call) RunAndReturn(run func() error) *MockInterface
 	return _c
 }
 
+// DeleteSurveyQuestionAnswer provides a mock function for the type MockInterface
+func (_mock *MockInterface) DeleteSurveyQuestionAnswer(sessionUUID string, questionUUID string) error {
+	ret := _mock.Called(sessionUUID, questionUUID)
+	if len(ret) == 0 || ret.Get(0) == nil {
+		return nil
+	}
+	return ret.Error(0)
+}
+
 // StoreWebhookResponse provides a mock function for the type MockInterface
 func (_mock *MockInterface) StoreWebhookResponse(sessionId int, responseStatus int, response string) error {
 	ret := _mock.Called(sessionId, responseStatus, response)
