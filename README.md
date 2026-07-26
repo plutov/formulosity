@@ -26,7 +26,8 @@ This approach offers a number of advantages, including:
 - [x] Advanced validation rules
 - [x] Export responses in UI or via API
 - [ ] Advanced question types
-- [ ] Pipe answers into the following questions
+- [x] Pipe answers into the following questions
+- [x] Conditional question visibility
 
 ## Survey Structure
 
@@ -99,6 +100,43 @@ questions:
     validation:
       min: 1
       max: 3
+```
+
+## Conditional questions and answer piping
+
+Questions may use `visible_if` to branch based on answers to earlier questions. Referenced questions must have an explicit, unique `id` and must appear above the dependent question. Hidden questions are not required, cannot be submitted, have their stored answers cleared, and are omitted from sessions, exports, and webhooks.
+
+A condition has one leaf operator or one logical operator. Supported leaf operators are `equals`, `not_equals`, `contains`, `greater_than`, `greater_than_or_equal`, `less_than`, `less_than_or_equal`, `is_answered`, and `is_not_answered`. Boolean composition uses non-empty `all` and `any` lists or a single `not` condition. `contains` checks exact membership in a multiple-choice or ranking answer; numeric comparisons require a numeric answer.
+
+Text interpolation uses `{{ question_id }}` (whitespace is optional). It is supported in `intro`, `outro`, question `label` and `description`, and choice/ranking option labels. Missing answers render as an empty string and arrays are rendered as comma-separated values. Interpolation references must name a question; expressions and defaults are not supported.
+
+```yaml
+title: Employment survey
+intro: Welcome {{ name }}.
+questions:
+  - id: name
+    type: short-text
+    label: What is your name?
+  - id: employment
+    type: single-choice
+    label: Are you employed?
+    options: [yes, no]
+  - id: employer
+    type: short-text
+    label: Who employs you, {{ name }}?
+    visible_if:
+      question: employment
+      equals: yes
+  - id: interests
+    type: multiple-choice
+    label: Which tools do you use?
+    options: [Go, Rust, TypeScript]
+  - id: go_experience
+    type: long-text
+    label: Tell us about your Go experience.
+    visible_if:
+      question: interests
+      contains: Go
 ```
 
 ### security.yaml

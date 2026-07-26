@@ -204,6 +204,11 @@ INSERT INTO surveys_answers (session_id, question_id, answer)
     DO UPDATE SET
         answer = EXCLUDED.answer;
 
+-- name: DeleteSurveyQuestionAnswer :exec
+DELETE FROM surveys_answers
+WHERE session_id = (SELECT ss.id FROM surveys_sessions ss WHERE ss.uuid = $1)
+  AND question_id = (SELECT sq.id FROM surveys_questions sq WHERE sq.uuid = $2);
+
 -- name: GetSurveySessionsWithAnswers :many
 WITH limited_sessions AS (
     SELECT

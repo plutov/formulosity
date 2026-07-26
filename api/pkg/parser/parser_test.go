@@ -37,7 +37,9 @@ func TestReadSurveys(t *testing.T) {
 	assert.Len(t, surveyConfig.Hash, 64)
 	assert.Len(t, surveyConfig.Questions.Questions, 9)
 	assert.Len(t, surveyConfig.Variables.Variables, 1)
-	assert.Equal(t, "Survey Title", surveyConfig.Title)
+	assert.Equal(t, "Conditional developer survey", surveyConfig.Title)
+	assert.NotNil(t, surveyConfig.Questions.Questions[2].VisibleIf)
+	assert.Equal(t, "employment", surveyConfig.Questions.Questions[2].VisibleIf.Question)
 	assert.Equal(t, types.Theme_Default, surveyConfig.Theme)
 	assert.Equal(t, surveyConfig.Hash, surveyConfigCopy.Hash)
 

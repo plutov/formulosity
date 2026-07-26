@@ -34,6 +34,22 @@ export type SurveyStats = {
 
 export const SurveyThemeCustom = 'custom'
 
+export type QuestionCondition = {
+  question?: string
+  equals?: unknown
+  not_equals?: unknown
+  contains?: unknown
+  greater_than?: unknown
+  greater_than_or_equal?: unknown
+  less_than?: unknown
+  less_than_or_equal?: unknown
+  is_answered?: boolean
+  is_not_answered?: boolean
+  all?: QuestionCondition[]
+  any?: QuestionCondition[]
+  not?: QuestionCondition
+}
+
 export type SurveyConfig = {
   title: string
   intro: string
@@ -57,6 +73,7 @@ export type SurveyQuestion = {
   max?: number
   index: number
   answer: SurveyQuestionAnswerData
+  visible_if?: QuestionCondition
 }
 
 export enum SurveyQuestionType {

@@ -1,8 +1,8 @@
-title: Survey Title
+title: Conditional developer survey
 theme: default
 intro: |
-  This is the introduction to the survey.
-  It can be multiple lines long.
+  Welcome!
+  Your answers will tailor the rest of this survey.
 outro: |
-  Thank you for taking the survey.
-  Your feedback is important to us.
+  Thanks {{ name }}.
+  You selected: {{ interests }}.

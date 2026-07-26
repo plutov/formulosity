@@ -442,6 +442,18 @@ func (p *Postgres) UpsertSurveyQuestionAnswer(sessionUUID string, questionUUID s
 	})
 }
 
+func (p *Postgres) DeleteSurveyQuestionAnswer(sessionUUID string, questionUUID string) error {
+	sessionUUIDPg, err := db.DecodeUUID(sessionUUID)
+	if err != nil {
+		return fmt.Errorf("failed to decode session UUID: %w", err)
+	}
+	questionUUIDPg, err := db.DecodeUUID(questionUUID)
+	if err != nil {
+		return fmt.Errorf("failed to decode question UUID: %w", err)
+	}
+	return p.queries.DeleteSurveyQuestionAnswer(p.ctx, db.DeleteSurveyQuestionAnswerParams{Uuid: sessionUUIDPg, Uuid_2: questionUUIDPg})
+}
+
 func (p *Postgres) GetSurveySessionsWithAnswers(surveyUUID string, filter *types.SurveySessionsFilter) ([]types.SurveySession, int, error) {
 	surveyUUIDPg, err := db.DecodeUUID(surveyUUID)
 	if err != nil {

@@ -1,41 +1,64 @@
 questions:
-  - type: single-choice
-    id: question1 # optional ID, must be unique across all questions
-    label: What is the capital of Germany?
-    # defined in variables.yaml
-    optionsFromVariable: german-city-options
-  - type: multiple-choice
-    label: Which of the following are cities in Germany?
-    description: You can select multiple options
-    validation:
-      min: 2
-      max: 4
+  - id: name
+    type: short-text
+    label: What is your name?
+
+  - id: employment
+    type: single-choice
+    label: Are you currently employed?
     options:
-      - Berlin
-      - Munich
-      - Paris
-      - London
-      - Hamburg
-      - Cologne
-      - Geneva
-      - Oslo
-  - type: short-text
-    label: What is the capital of Germany?
-  - type: long-text
-    label: What is the capital of Germany?
+      - yes
+      - no
+
+  - id: employer
+    type: short-text
+    label: Who employs you, {{ name }}?
+    visible_if:
+      question: employment
+      equals: yes
+
+  - id: interests
+    type: multiple-choice
+    label: Which technologies do you use?
+    description: Select every technology you use regularly.
     validation:
-      min: 10
-      max: 100
-  - type: date
-    label: When was the Berlin Wall built?
-  - type: rating
-    label: How much do you like Berlin?
+      min: 1
+      max: 3
+    options:
+      - Go
+      - Rust
+      - TypeScript
+
+  - id: go_experience
+    type: long-text
+    label: Tell us about your Go experience, {{ name }}.
+    visible_if:
+      question: interests
+      contains: Go
+
+  - id: satisfaction
+    type: rating
+    label: How satisfied are you with your current developer tooling?
     min: 1
     max: 5
-  - type: ranking
-    label: Rank the following cities by population
-    optionsFromVariable: german-city-options
-  - type: yes-no
-    label: Is Berlin the capital of Germany?
-  - type: email
-    label: Please Enter your email.
+
+  - id: satisfaction_feedback
+    type: long-text
+    label: What could improve your tooling experience?
+    visible_if:
+      all:
+        - question: satisfaction
+          less_than_or_equal: 3
+        - question: employment
+          equals: yes
+
+  - id: contact
+    type: yes-no
+    label: May we contact you about your responses, {{ name }}?
+
+  - id: email
+    type: email
+    label: What is the best email address for you?
+    visible_if:
+      question: contact
+      equals: true

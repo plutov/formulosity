@@ -7,10 +7,12 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { Survey, SurveyConfig } from '@/lib/types'
+import type { Survey, SurveyConfig, SurveySession } from '@/lib/types'
+import { answersFor, interpolateText } from '@/lib/questions'
 
 interface Props {
   survey: Survey
+  session?: SurveySession
 }
 
 const props = defineProps<Props>()
@@ -18,6 +20,7 @@ const props = defineProps<Props>()
 const config = computed(() => props.survey.config as SurveyConfig)
 
 function formatOutro(outro: string): string {
-  return outro.replace(/(?:\r\n|\r|\n)/g, '<br>')
+  const answers = props.session ? answersFor(props.survey, props.session) : {}
+  return interpolateText(outro, answers).replace(/(?:\r\n|\r|\n)/g, '<br>')
 }
 </script>
